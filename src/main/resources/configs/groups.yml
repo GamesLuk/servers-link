@@ -1,0 +1,30 @@
+groups:
+    global:
+        chat: true
+        player_data: false
+        player_list: true
+        roles: false
+        whitelist: true
+
+    survival:
+      # chat: true
+      player_data: true
+      # player_list: true
+      roles: true
+      # whitelist: true
+
+    creative:
+      # chat: true
+      player_data: true
+      # player_list: true
+      roles: true
+      # whitelist: true
+
+rules:
+    # 0:
+    #  groups: ["survival", "creative"]
+    #  chat: true
+    #  player_data: false
+    #  player_list: true
+    #  roles: false
+    #  whitelist: true

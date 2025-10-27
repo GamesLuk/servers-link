@@ -64,7 +64,7 @@ public class ServersLink implements ModInitializer {
 	}
 
 	private void loadServerInfo() {
-		Path path = CONFIG.resolve("info.json");
+		Path path = CONFIG.resolve("info.yml");
 		try {
 			String jsonContent = Files.readString(path);
 			Gson gson = new Gson();
@@ -80,7 +80,7 @@ public class ServersLink implements ModInitializer {
 			);
 		} catch (IOException e) {
 			CONFIG_ERROR = true;
-			ServersLink.LOGGER.error("Unable to read info.json");
+			ServersLink.LOGGER.error("Unable to read info.yml");
 		}
 	}
 }

@@ -1,10 +1,11 @@
-{
-  "group": "global",
-  "gateway": true,
-  "gateway-ip": "127.0.0.1",
-  "gateway-port": 59001,
-  "server-name": "Hub",
-  "server-ip": "127.0.0.1",
-  "server-port": 25565,
-  "command-name": "network"
-}
+group: global
+gateway:
+		gateway: false
+		gateway-ip: 127.0.0.1
+		gateway-port: 59001
+server:
+		server-name: Hub
+		server-ip: 127.0.0.1
+		server-port: 25565
+gameplay:
+		command-name: server

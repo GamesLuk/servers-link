@@ -122,7 +122,7 @@ public class Gateway extends Thread {
     }
 
     public void loadConfig() {
-        Path path = ServersLink.CONFIG.resolve("config.yml");
+        Path path = ServersLink.CONFIG.resolve("config.json");
         try {
             String jsonContent = Files.readString(path);
             Gson gson = new Gson();
@@ -135,7 +135,7 @@ public class Gateway extends Thread {
             }
             reconnectLastServer = jsonObject.get("reconnect_last_server").getAsBoolean();
         } catch (IOException e) {
-            ServersLink.LOGGER.error("Unable to read config.yml");
+            ServersLink.LOGGER.error("Unable to read config.json");
         }
     }
 
@@ -160,7 +160,7 @@ public class Gateway extends Thread {
     }
 
     private void loadGroups() {
-        Path path = ServersLink.CONFIG.resolve("groups.yml");
+        Path path = ServersLink.CONFIG.resolve("groups.json");
         try {
             String jsonContent = Files.readString(path);
             Gson gson = new Gson();
@@ -214,7 +214,7 @@ public class Gateway extends Thread {
                 }
             }
         } catch (IOException e) {
-            ServersLink.LOGGER.error("Unable to read groups.yml");
+            ServersLink.LOGGER.error("Unable to read groups.json");
         }
     }
 

@@ -27,23 +27,7 @@ public class ServerStart implements ServerLifecycleEvents.ServerStarted {
                 gateway.setDaemon(true);
                 gateway.start();
             } else {
-                ServersLink.LOGGER.info("Connecting to gateway at {}:{}", ServersLink.getGatewayIp(), ServersLink.getGatewayPort());
                 SubServer connection = new SubServer(ServersLink.getGatewayIp(), ServersLink.getGatewayPort());
-
-                while(connection.failedToConnect) {
-                    ServersLink.LOGGER.info("Connecting to gateway at {}:{}", ServersLink.getGatewayIp(), ServersLink.getGatewayPort());
-                    connection = new SubServer(ServersLink.getGatewayIp(), ServersLink.getGatewayPort());
-                    if (connection.failedToConnect) {
-                        ServersLink.LOGGER.error("Failed to connect to gateway");
-                        //sleep
-                        try {
-                            Thread.sleep(30000);
-                        } catch (InterruptedException e) {
-                            ServersLink.LOGGER.error("Connection retry interrupted");
-                        }
-                    }
-                }
-                ServersLink.LOGGER.info("Connected to gateway!");
                 connection.setDaemon(true);
                 connection.start();
             }

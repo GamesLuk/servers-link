@@ -1,6 +1,7 @@
 package io.github.kgriff0n.event;
 
 import io.github.kgriff0n.ServersLink;
+import io.github.kgriff0n.api.event.PlayerDisconnectCallback;
 import io.github.kgriff0n.packet.play.PlayerDisconnectPacket;
 import io.github.kgriff0n.packet.info.ServersInfoPacket;
 import io.github.kgriff0n.socket.Gateway;
@@ -20,6 +21,12 @@ public class PlayerDisconnect implements ServerPlayConnectionEvents.Disconnect {
         ServerPlayerEntity player = serverPlayNetworkHandler.player;
         UUID uuid = player.getUuid();
         PlayerDisconnectPacket packet = new PlayerDisconnectPacket(uuid);
+
+        // Check if player is being transferred
+        boolean isTransfer = ServersLinkApi.isPlayerBeingTransferred(uuid);
+
+        // Fire custom event for other mods to hook into
+        PlayerDisconnectCallback.EVENT.invoker().onPlayerDisconnect(player, uuid, isTransfer);
 
         /* Set player pos, dim & last server */
         ((IPlayerServersLink) player).servers_link$setServerPos(ServersLink.getServerInfo().getName(), player.getEntityPos());

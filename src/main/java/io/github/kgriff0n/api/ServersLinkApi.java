@@ -257,4 +257,22 @@ public class ServersLinkApi {
         ServerTick.scheduleDisconnect(player.getUuid(), 20); // delay
     }
 
+    /**
+     * Checks if a player is being transferred to another server.
+     * This is useful for distinguishing between a normal disconnect and a server transfer.
+     * @param uuid the UUID of the player
+     * @return true if the player is being transferred, false if they are leaving the network
+     */
+    public static boolean isPlayerBeingTransferred(UUID uuid) {
+        return preventDisconnect.contains(uuid);
+    }
+
+    /**
+     * Returns the name of the current server as configured in info.json.
+     * @return the server name from the configuration
+     */
+    public static String getCurrentServerName() {
+        return ServersLink.getServerInfo().getName();
+    }
+
 }

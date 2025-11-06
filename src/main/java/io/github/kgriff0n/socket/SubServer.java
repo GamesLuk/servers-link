@@ -17,6 +17,8 @@ import static io.github.kgriff0n.ServersLink.SERVER;
 
 public class SubServer extends Thread {
 
+    public boolean failedToConnect = false;
+
     private static SubServer connection;
 
     private ExecutorService executor;
@@ -45,6 +47,7 @@ public class SubServer extends Thread {
                 in = new ObjectInputStream(clientSocket.getInputStream());
             } catch (IOException e) {
                 ServersLink.LOGGER.error("Unable to establish connection");
+                this.failedToConnect = true;
             }
             connection = this;
             executor  = Executors.newSingleThreadExecutor();

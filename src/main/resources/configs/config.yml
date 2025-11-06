@@ -1,5 +1,21 @@
+# Main Configuration File for Servers-Link
+# This file contains global settings that apply to the entire server network
+
+# Enable debug mode for detailed logging and troubleshooting
 debug: false
+
+# Display the total player count from all connected servers
+# When enabled, shows combined player count across the network
 global_player_count: true
+
+# Enable IP-based whitelist filtering
+# When enabled, only whitelisted IPs can register a server to the network
 whitelist_ip: false
+
+# List of IP addresses allowed to connect when whitelist_ip is enabled
+# Example: ["192.168.1.100", "10.0.0.50"]
 whitelisted_ip: []
+
+# Automatically reconnect players to their last visited server
+# When enabled, players will rejoin the server they were on before disconnecting
 reconnect_last_server: true

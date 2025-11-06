@@ -13,7 +13,11 @@ public class ServerStart implements ServerLifecycleEvents.ServerStarted {
     @Override
     public void onServerStarted(MinecraftServer minecraftServer) {
         if (CONFIG_ERROR) {
-            ServersLink.LOGGER.error("You must configure servers-link before starting your server");
+            ServersLink.LOGGER.error("You must configure servers-link before starting your server.\n" +
+                    "The configuration file(s) can be found in the 'config/servers-link' folder.\n" +
+                    "For more information, visit https://github.com/kgriff0n/servers-link/blob/master/README.md\n" +
+                    "For help, join the Discord: https://discord.gg/ZeHm57BEyt\n" +
+                    "Shutting down the server...");
             minecraftServer.stop(false);
         } else {
             /* Initialize SERVER */

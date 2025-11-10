@@ -64,7 +64,7 @@ public class ServersLink implements ModInitializer {
 	}
 
 	private void loadServerInfo() {
-		Path path = CONFIG.resolve("info.json");
+		Path path = CONFIG.resolve("info.yml");
 		try {
 			String jsonContent = Files.readString(path);
 			Gson gson = new Gson();

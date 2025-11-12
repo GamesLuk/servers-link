@@ -2,7 +2,7 @@ package io.github.kgriff0n.configs;
 
 import java.util.Map;
 
-public class InfoConfig {
+public class GroupConfig {
 
     private final String group;
     private final boolean gateway;
@@ -38,7 +38,7 @@ public class InfoConfig {
         return commandName;
     }
 
-    private InfoConfig(Map<String, Object> configMap) {
+    private GroupConfig(Map<String, Object> configMap) {
 
         this.group = (String) configMap.getOrDefault("group", "global");
         this.gateway = (Boolean) configMap.getOrDefault("gateway", false);
@@ -51,11 +51,11 @@ public class InfoConfig {
 
     }
 
-    public InfoConfig loadConfig(String path) {
+    public GroupConfig loadConfig(String path) {
         try {
             YamlConfigLoader loader = new YamlConfigLoader();
             Map<String, Object> configMap = loader.loadConfig(path);
-            return new InfoConfig(configMap);
+            return new GroupConfig(configMap);
         } catch (Exception e) {
             System.err.println("Error while loading InfoConfig: " + e.getMessage());
             return null;

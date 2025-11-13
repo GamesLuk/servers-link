@@ -51,7 +51,7 @@ public class InfoConfig {
 
     }
 
-    public InfoConfig loadConfig(String path) {
+    public static InfoConfig loadConfig(String path) {
         try {
             YamlConfigLoader loader = new YamlConfigLoader();
             Map<String, Object> configMap = loader.loadConfig(path);

@@ -1,10 +1,10 @@
 package io.github.kgriff0n.socket;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.kgriff0n.ServersLink;
+import io.github.kgriff0n.configs.GroupsConfig;
 import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.server.Group;
 import io.github.kgriff0n.server.ServerInfo;
@@ -41,8 +41,7 @@ public class Gateway extends Thread {
         try {
             serverSocket = new ServerSocket(port);
             gateway = this;
-            groups = new HashMap<>();
-            loadGroups();
+            groups = GroupsConfig.loadConfig(ServersLink.CONFIG.resolve("groups.json").toString());
             ServersLinkApi.addServer(ServersLink.getServerInfo(), null);
         } catch (IOException e) {
             ServersLink.LOGGER.info("Unable to start central server");
@@ -157,65 +156,6 @@ public class Gateway extends Thread {
 
     public boolean shouldReconnectToLastServer() {
         return reconnectLastServer;
-    }
-
-    private void loadGroups() {
-        Path path = ServersLink.CONFIG.resolve("groups.json");
-        try {
-            String jsonContent = Files.readString(path);
-            Gson gson = new Gson();
-            JsonObject jsonObject = gson.fromJson(jsonContent, JsonObject.class);
-            // GROUPS
-            JsonObject jsonGroups = jsonObject.getAsJsonObject("groups");
-            // Global
-            JsonObject global = jsonGroups.getAsJsonObject("global");
-            Settings globalSettings = new Settings(
-                    global.get("player_list").getAsBoolean(),
-                    global.get("chat").getAsBoolean(),
-                    global.get("player_data").getAsBoolean(),
-                    global.get("whitelist").getAsBoolean(),
-                    global.get("roles").getAsBoolean()
-            );
-            groups.put("global", new Group("global", globalSettings));
-            // Others
-            for (Map.Entry<String, JsonElement> entry : jsonGroups.entrySet()) {
-                JsonObject otherGroup = entry.getValue().getAsJsonObject();
-                Settings otherSettings = new Settings(
-                        otherGroup.has("player_list") ? otherGroup.get("player_list").getAsBoolean() : globalSettings.isPlayerListSynced(),
-                        otherGroup.has("chat") ? otherGroup.get("chat").getAsBoolean() : globalSettings.isChatSynced(),
-                        otherGroup.has("player_data") ? otherGroup.get("player_data").getAsBoolean() : globalSettings.isPlayerDataSynced(),
-                        otherGroup.has("whitelist") ? otherGroup.get("whitelist").getAsBoolean() : globalSettings.isWhitelistSynced(),
-                        otherGroup.has("roles") ? otherGroup.get("roles").getAsBoolean() : globalSettings.isRolesSynced()
-                );
-                if (!entry.getKey().equals("global")) { // Doesn't re-add global group
-                    groups.put(entry.getKey(), new Group(entry.getKey(), otherSettings));
-                }
-            }
-
-            // RULES
-            JsonArray jsonRules = jsonObject.get("rules").getAsJsonArray();
-            for (JsonElement element : jsonRules) {
-                JsonObject rule = element.getAsJsonObject();
-                JsonArray ruleGroups = rule.getAsJsonArray("groups");
-                Settings ruleSettings = new Settings(
-                        rule.has("player_list") ? rule.get("player_list").getAsBoolean() : globalSettings.isPlayerListSynced(),
-                        rule.has("chat") ? rule.get("chat").getAsBoolean() : globalSettings.isChatSynced(),
-                        rule.has("player_data") ? rule.get("player_data").getAsBoolean() : globalSettings.isPlayerDataSynced(),
-                        rule.has("whitelist") ? rule.get("whitelist").getAsBoolean() : globalSettings.isWhitelistSynced(),
-                        rule.has("roles") ? rule.get("roles").getAsBoolean() : globalSettings.isRolesSynced()
-                );
-                for (int i = 0; i < ruleGroups.size(); i++) {
-                    String groupId = ruleGroups.get(i).getAsString();
-                    for (int j = 0; j < ruleGroups.size(); j++) {
-                        if (i != j) {
-                            groups.get(groupId).addRule(ruleGroups.get(j).getAsString(), ruleSettings);
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            ServersLink.LOGGER.error("Unable to read groups.json");
-        }
     }
 
     @Override

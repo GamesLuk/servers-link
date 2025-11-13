@@ -27,8 +27,8 @@ import java.nio.file.Path;
 public class ServersLink implements ModInitializer {
 	public static final String MOD_ID = "servers-link";
 	public static final Path CONFIG = FabricLoader.getInstance().getConfigDir().resolve("servers-link");
-	public static boolean isGateway;
 
+    public static boolean isGateway;
 	private static ServerInfo serverInfo;
 	private static String gatewayIp;
 	private static int gatewayPort;
@@ -69,22 +69,17 @@ public class ServersLink implements ModInitializer {
 
 	private void loadServerInfo() {
 		Path path = CONFIG.resolve("info.yml");
-		try {
-			String jsonContent = Files.readString(path);
-			Gson gson = new Gson();
-			JsonObject jsonObject = gson.fromJson(jsonContent, JsonObject.class);
-            isGateway = jsonObject.get("gateway").getAsBoolean();
-			gatewayIp = jsonObject.get("gateway-ip").getAsString();
-			gatewayPort = jsonObject.get("gateway-port").getAsInt();
-			serverInfo = new ServerInfo(
-					jsonObject.get("group").getAsString(),
-					jsonObject.get("server-name").getAsString(),
-					jsonObject.get("server-ip").getAsString(),
-					jsonObject.get("server-port").getAsInt()
-			);
-		} catch (IOException e) {
-			CONFIG_ERROR = true;
-			ServersLink.LOGGER.error("Unable to read info.json");
-		}
+        InfoConfig infoConfig = InfoConfig.loadConfig(path.toString());
+        if (infoConfig == null) {CONFIG_ERROR = true; return;}
+
+        isGateway = infoConfig.isGateway();
+        gatewayIp = infoConfig.getGatewayIp();
+        gatewayPort = infoConfig.getGatewayPort();
+        serverInfo = new ServerInfo(
+                infoConfig.getGroup(),
+                infoConfig.getServerName(),
+                infoConfig.getServerIp(),
+                infoConfig.getServerPort()
+        );
 	}
 }

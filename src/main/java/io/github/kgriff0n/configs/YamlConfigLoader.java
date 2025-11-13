@@ -18,9 +18,4 @@ public class YamlConfigLoader {
         InputStream inputStream = new FileInputStream(filePath);
         return yaml.load(inputStream);
     }
-
-    public <T> T loadConfigAs(String filePath, Class<T> configClass) throws FileNotFoundException {
-        InputStream inputStream = new FileInputStream(filePath);
-        return yaml.loadAs(inputStream, configClass);
-    }
 }

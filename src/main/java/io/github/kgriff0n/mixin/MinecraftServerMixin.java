@@ -10,7 +10,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.ServerMetadata;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -26,14 +25,12 @@ public abstract class MinecraftServerMixin implements QueryableServer {
         if (ServersLink.isGateway && Gateway.getInstance().isGlobalPlayerCountEnabled()) {
             int maxPlayers = getMaxPlayerCount();
             int playerCount = 0;
-            List<GameProfile> players = new ArrayList<>();
             List<PlayerConfigEntry> playerConfigEntries = new ArrayList<>();
             for (ServerInfo server : ServersLinkApi.getServerList()) {
                 playerCount += server.getPlayersList().size();
-                for (GameProfile player : players) {
+                for (GameProfile player : server.getGameProfile()) {
                     playerConfigEntries.add(new PlayerConfigEntry(player.id(), player.name()));
                 }
-
             }
             cir.setReturnValue(new ServerMetadata.Players(maxPlayers, playerCount, playerConfigEntries));
         }

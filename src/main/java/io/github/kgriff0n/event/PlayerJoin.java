@@ -14,8 +14,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.entity.Entity;
-import net.minecraft.network.listener.ServerPlayPacketListener;
-import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -27,10 +25,6 @@ import net.minecraft.world.TeleportTarget;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static io.github.kgriff0n.ServersLink.LOGGER;
 
 public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerEntityEvents.Load {
 
@@ -121,14 +115,8 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerEntity
             player.sendAbilitiesUpdate();
         };
 
-        TeleportTarget teleportTarget = new TeleportTarget(
-                dim, pos, Vec3d.ZERO, rot.get(0), rot.get(1), enableFlight);
-
-        LOGGER.info("Player " + newPlayer.getName().getString() + " position: " + newPlayer.getX() + ", " + newPlayer.getY() + ", " + newPlayer.getZ() + " in dimension " + newPlayer.getEntityWorld().getRegistryKey().getValue().toString());
-        LOGGER.info("Teleporting player " + newPlayer.getName().getString() + " to " + pos.x + ", " + pos.y + ", " + pos.z + " in dimension " + (dim != null ? dim.getRegistryKey().getValue().toString() : "null"));
-        //if (pos != null && dim != null) newPlayer.teleport(dim, posX, posY, posZ, posFlags, yaw, pitch, true);
+        TeleportTarget teleportTarget = new TeleportTarget(dim, pos, Vec3d.ZERO, rot.get(0), rot.get(1), enableFlight);
         newPlayer.teleportTo(teleportTarget);
-        LOGGER.info("Player " + newPlayer.getName().getString() + " position: " + newPlayer.getX() + ", " + newPlayer.getY() + ", " + newPlayer.getZ() + " in dimension " + newPlayer.getEntityWorld().getRegistryKey().getValue().toString());
 
 
     }

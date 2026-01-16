@@ -73,7 +73,6 @@ public class ServersLink implements ModInitializer {
 	}
 
 	private void loadServerInfo() {
-<<<<<<< Updated upstream
 		Path path = CONFIG.resolve("info.yml");
         InfoConfig infoConfig = InfoConfig.loadConfig(path.toString());
         if (infoConfig == null) {CONFIG_ERROR = true; return;}
@@ -87,8 +86,8 @@ public class ServersLink implements ModInitializer {
                 infoConfig.getServerIp(),
                 infoConfig.getServerPort()
         );
-=======
-		Path path = CONFIG.resolve("info.json");
+
+		Path infoPath = CONFIG.resolve("info.json");
 		try {
 			String jsonContent = Files.readString(path);
 			Gson gson = new Gson();
@@ -107,7 +106,6 @@ public class ServersLink implements ModInitializer {
 			CONFIG_ERROR = true;
 			ServersLink.LOGGER.error("Unable to read info.json");
 		}
->>>>>>> Stashed changes
 	}
 
     public static List<String> getPermissions(String type) {

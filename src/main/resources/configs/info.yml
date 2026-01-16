@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 # Server Instance Configuration
 # This file defines the configuration for an individual server in the network
 # Each server should have its own info.yml file with appropriate settings
@@ -33,25 +32,3 @@ server-port: 25565,
 # Command name players use to access network features
 # Example: /network or /hub depending on this value
 command-name: "network"
-=======
-group: global
-gateway:
-    gateway: false
-    gateway-ip: 127.0.0.1
-    gateway-port: 59001
-server:
-    server-name: Hub
-    server-ip: 127.0.0.1
-    server-port: 25565
-gameplay:
-    command-name: server
-permissions:
-    addOnJoin:
-        - "x.x"
-    addOnLeave:
-        - "x.x"
-    removeOnJoin:
-        - "x.x"
-    removeOnLeave:
-        - "x.x"
->>>>>>> Stashed changes

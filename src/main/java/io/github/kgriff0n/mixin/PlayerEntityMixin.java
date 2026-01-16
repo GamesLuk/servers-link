@@ -1,7 +1,6 @@
 package io.github.kgriff0n.mixin;
 
 import com.mojang.serialization.Codec;
-import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.util.IPlayerServersLink;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.RegistryKey;
@@ -107,7 +106,7 @@ public class PlayerEntityMixin implements IPlayerServersLink {
                     this.serversDim = new HashMap<>();
                     dimMap.forEach((server, dimId) -> {
                         RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.ofVanilla(dimId));
-                        World world = (PlayerEntity) (Object) this instanceof PlayerEntity player ? Objects.requireNonNull(player.getEntityWorld().getServer()).getWorld(key) : null;
+                        World world = Objects.requireNonNull(((PlayerEntity) (Object) this).getEntityWorld().getServer()).getWorld(key);
                         if (world instanceof ServerWorld serverWorld) {
                             serversDim.put(server, serverWorld);
                         }

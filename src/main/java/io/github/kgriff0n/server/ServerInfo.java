@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.PropertyMap;
+import io.github.kgriff0n.ServersLink;
 
 import java.io.Serializable;
 import java.util.*;
@@ -62,10 +63,7 @@ public class ServerInfo implements Serializable {
         List<GameProfile> list = new ArrayList<>();
         for (Map.Entry<UUID, String> entry : playersList.entrySet()) {
             PropertyMap properties = new PropertyMap.Serializer().deserialize(JsonParser.parseString(playersPropertiesList.get(entry.getKey())), null, null);
-            GameProfile profile = new GameProfile(entry.getKey(), entry.getValue());
-            /* Initialize game profile */
-            PropertyMap gameProfileProperties = profile.properties();
-            properties.forEach(gameProfileProperties::put);
+            GameProfile profile = new GameProfile(entry.getKey(), entry.getValue(), properties);
             list.add(profile);
         }
         return list;

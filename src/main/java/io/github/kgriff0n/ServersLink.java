@@ -86,26 +86,6 @@ public class ServersLink implements ModInitializer {
                 infoConfig.getServerIp(),
                 infoConfig.getServerPort()
         );
-
-		Path infoPath = CONFIG.resolve("info.json");
-		try {
-			String jsonContent = Files.readString(path);
-			Gson gson = new Gson();
-			JsonObject jsonObject = gson.fromJson(jsonContent, JsonObject.class);
-            isGateway = jsonObject.get("gateway").getAsBoolean();
-			gatewayIp = jsonObject.get("gateway-ip").getAsString();
-			gatewayPort = jsonObject.get("gateway-port").getAsInt();
-			serverInfo = new ServerInfo(
-					jsonObject.get("group").getAsString(),
-					jsonObject.get("server-name").getAsString(),
-					jsonObject.get("server-ip").getAsString(),
-					jsonObject.get("server-port").getAsInt()
-			);
-
-		} catch (IOException e) {
-			CONFIG_ERROR = true;
-			ServersLink.LOGGER.error("Unable to read info.json");
-		}
 	}
 
     public static List<String> getPermissions(String type) {

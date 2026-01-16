@@ -9,6 +9,7 @@
     "PlayerEntityMixin",
     "PlayerManagerAccessor",
     "PlayerManagerMixin",
+    "ServerPlayerEntityMixin",
     "ServerPlayNetworkHandlerMixin"
   ],
   "injectors": {

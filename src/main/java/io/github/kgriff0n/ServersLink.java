@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 public class ServersLink implements ModInitializer {
 	public static final String MOD_ID = "servers-link";
@@ -32,6 +33,10 @@ public class ServersLink implements ModInitializer {
 	private static ServerInfo serverInfo;
 	private static String gatewayIp;
 	private static int gatewayPort;
+    private static List<String> permissionsAddOnJoin;
+    private static List<String> permissionsAddOnLeave;
+    private static List<String> permissionsRemoveOnJoin;
+    private static List<String> permissionsRemoveOnLeave;
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
@@ -68,6 +73,7 @@ public class ServersLink implements ModInitializer {
 	}
 
 	private void loadServerInfo() {
+<<<<<<< Updated upstream
 		Path path = CONFIG.resolve("info.yml");
         InfoConfig infoConfig = InfoConfig.loadConfig(path.toString());
         if (infoConfig == null) {CONFIG_ERROR = true; return;}
@@ -81,5 +87,37 @@ public class ServersLink implements ModInitializer {
                 infoConfig.getServerIp(),
                 infoConfig.getServerPort()
         );
+=======
+		Path path = CONFIG.resolve("info.json");
+		try {
+			String jsonContent = Files.readString(path);
+			Gson gson = new Gson();
+			JsonObject jsonObject = gson.fromJson(jsonContent, JsonObject.class);
+            isGateway = jsonObject.get("gateway").getAsBoolean();
+			gatewayIp = jsonObject.get("gateway-ip").getAsString();
+			gatewayPort = jsonObject.get("gateway-port").getAsInt();
+			serverInfo = new ServerInfo(
+					jsonObject.get("group").getAsString(),
+					jsonObject.get("server-name").getAsString(),
+					jsonObject.get("server-ip").getAsString(),
+					jsonObject.get("server-port").getAsInt()
+			);
+
+		} catch (IOException e) {
+			CONFIG_ERROR = true;
+			ServersLink.LOGGER.error("Unable to read info.json");
+		}
+>>>>>>> Stashed changes
 	}
+
+    public static List<String> getPermissions(String type) {
+
+        return switch (type) {
+            case "add-on-join" -> permissionsAddOnJoin;
+            case "add-on-leave" -> permissionsAddOnLeave;
+            case "remove-on-join" -> permissionsRemoveOnJoin;
+            case "remove-on-leave" -> permissionsRemoveOnLeave;
+            default -> List.of();
+        };
+    }
 }

@@ -13,27 +13,52 @@ groups:
 
     # Survival servers group - for survival game mode servers
     survival:
+<<<<<<< Updated upstream
       # chat: true            # Inherits from global if not specified
       player_data: true         # Sync player inventory, health, etc. between survival servers
       # player_list: true     # Inherits from global if not specified
       roles: true               # Sync player roles/permissions between survival servers
       # whitelist: true       # Inherits from global if not specified
+=======
+        # chat: true
+        player_data: true
+        # player_list: true
+        roles: true
+        # whitelist: true
+>>>>>>> Stashed changes
 
     # Creative servers group - for creative game mode servers
     creative:
+<<<<<<< Updated upstream
       # chat: true            # Inherits from global if not specified
       player_data: true         # Sync player inventory, health, etc. between creative servers
       # player_list: true     # Inherits from global if not specified
       roles: true               # Sync player roles/permissions between creative servers
       # whitelist: true       # Inherits from global if not specified
+=======
+        # chat: true
+        player_data: true
+        # player_list: true
+        roles: true
+        # whitelist: true
+>>>>>>> Stashed changes
 
 # Custom rules - allows defining specific synchronization rules for combinations of groups
 rules:
     # Example rule (currently disabled):
     # 0:
+<<<<<<< Updated upstream
     #  groups: ["survival", "creative"]    # Apply this rule to these specific groups
     #  chat: true                          # Override chat sync setting for this combination
     #  player_data: false                  # Override player data sync for this combination
     #  player_list: true                   # Override player list sync for this combination
     #  roles: false                        # Override roles sync for this combination
     #  whitelist: true                     # Override whitelist sync for this combination
+=======
+    #    groups: ["survival", "creative"]
+    #    chat: true
+    #    player_data: false
+    #    player_list: true
+    #    roles: false
+    #    whitelist: true
+>>>>>>> Stashed changes

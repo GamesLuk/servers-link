@@ -10,11 +10,11 @@ global_player_count: true
 
 # Enable IP-based whitelist filtering
 # When enabled, only whitelisted IPs can register a server to the network
-whitelist_ip: false
+whitelist_ips: false
 
 # List of IP addresses allowed to connect when whitelist_ip is enabled
 # Example: ["192.168.1.100", "10.0.0.50"]
-whitelisted_ip: []
+whitelisted_ips: []
 
 # Automatically reconnect players to their last visited server
 # When enabled, players will rejoin the server they were on before disconnecting

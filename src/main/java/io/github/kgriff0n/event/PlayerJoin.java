@@ -97,6 +97,7 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerEntity
             return;
         } else joinedPlayers.remove(newPlayer);
 
+        // Teleport Logic
         Vec3d pos = ((IPlayerServersLink) newPlayer).servers_link$getServerPos(ServersLink.getServerInfo().getName());
         ServerWorld dim = ((IPlayerServersLink) newPlayer).servers_link$getServerDim(ServersLink.getServerInfo().getName());
         List<Float> rot = ((IPlayerServersLink) newPlayer).servers_link$getServerRot(ServersLink.getServerInfo().getName());
@@ -117,7 +118,5 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerEntity
 
         TeleportTarget teleportTarget = new TeleportTarget(dim, pos, Vec3d.ZERO, rot.get(0), rot.get(1), enableFlight);
         newPlayer.teleportTo(teleportTarget);
-
-
     }
 }

@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.kgriff0n.ServersLink;
+import io.github.kgriff0n.configs.ConfigConfig;
 import io.github.kgriff0n.configs.GroupsConfig;
+import io.github.kgriff0n.configs.InfoConfig;
 import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.server.Group;
 import io.github.kgriff0n.server.ServerInfo;
@@ -121,21 +123,15 @@ public class Gateway extends Thread {
     }
 
     public void loadConfig() {
-        Path path = ServersLink.CONFIG.resolve("config.json");
-        try {
-            String jsonContent = Files.readString(path);
-            Gson gson = new Gson();
-            JsonObject jsonObject = gson.fromJson(jsonContent, JsonObject.class);
-            debug = jsonObject.get("debug").getAsBoolean();
-            globalPlayerCount = jsonObject.get("global_player_count").getAsBoolean();
-            whitelistIp = jsonObject.get("whitelist_ip").getAsBoolean();
-            for (JsonElement element : jsonObject.getAsJsonArray("whitelisted_ip")) {
-                whitelistedIp.add(element.getAsString());
-            }
-            reconnectLastServer = jsonObject.get("reconnect_last_server").getAsBoolean();
-        } catch (IOException e) {
-            ServersLink.LOGGER.error("Unable to read config.json");
-        }
+        Path path = ServersLink.CONFIG.resolve("config.yml");
+        ConfigConfig config = ConfigConfig.loadConfig(path.toString());
+        if (config == null) return;
+
+        debug = config.isDebug();
+        globalPlayerCount = config.isGlobalPlayerCount();
+        whitelistIp = config.isWhitelistIps();
+        whitelistedIp.addAll(config.getWhitelistedIps());
+        reconnectLastServer = config.isReconnectLastServer();
     }
 
     public boolean isDebugEnabled() {

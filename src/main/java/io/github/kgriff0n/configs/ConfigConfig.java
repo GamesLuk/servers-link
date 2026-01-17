@@ -21,6 +21,7 @@ public class ConfigConfig {
         return whitelistIps;
     }
     public ArrayList<String> getWhitelistedIps() {
+        if (whitelistedIps == null) return new ArrayList<>();
         return whitelistedIps;
     }
     public boolean isReconnectLastServer() {
@@ -31,18 +32,20 @@ public class ConfigConfig {
 
         this.debug = (boolean) configMap.get("debug");
         this.globalPlayerCount = (boolean) configMap.get("global_player_count");
-        this.whitelistIps = (boolean) configMap.get("whitelist_ip");
+        this.whitelistIps = (boolean) configMap.get("whitelist_ips");
         this.whitelistedIps = (ArrayList<String>) configMap.get("whitelisted_ips");
         this.reconnectLastServer = (boolean) configMap.get("reconnect_last_server");
     }
 
     public static ConfigConfig loadConfig(String path) {
         try {
-            YamlConfigLoader loader = new YamlConfigLoader();
+            YamlConfig loader = new YamlConfig();
             Map<String, Object> configMap = loader.loadConfig(path);
+            System.out.println(configMap);
             return new ConfigConfig(configMap);
         } catch (Exception e) {
-            System.err.println("Error while loading config.yml: " + e.getMessage());
+            // ServersLink.LOGGER.error("Error while loading config.yml: {}", e.getMessage());
+            System.out.println(e.getMessage());
             return null;
         }
     }

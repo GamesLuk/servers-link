@@ -1,5 +1,12 @@
 package io.github.kgriff0n.configs;
 
+import io.github.kgriff0n.ServersLink;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
 
 public class InfoConfig {
@@ -40,26 +47,25 @@ public class InfoConfig {
 
     private InfoConfig(Map<String, Object> configMap) {
 
-        this.group = (String) configMap.getOrDefault("group", "global");
-        this.gateway = (Boolean) configMap.getOrDefault("gateway", false);
-        this.gatewayIp = (String) configMap.getOrDefault("gateway-ip", "127.0.0.1");
-        this.gatewayPort = (Integer) configMap.getOrDefault("gateway-port", 59001);
-        this.serverName = (String) configMap.getOrDefault("server-name", "Hub");
-        this.serverIp = (String) configMap.getOrDefault("server-ip", "127.0.0.1");
-        this.serverPort = (Integer) configMap.getOrDefault("server-port", 25565);
+        this.group = (String) configMap.get("group");
+        this.gateway = (Boolean) configMap.get("gateway");
+        this.gatewayIp = (String) configMap.get("gateway-ip");
+        this.gatewayPort = (Integer) configMap.get("gateway-port");
+        this.serverName = (String) configMap.get("server-name");
+        this.serverIp = (String) configMap.get("server-ip");
+        this.serverPort = (Integer) configMap.get("server-port");
         this.commandName = (String) configMap.getOrDefault("command-name", "server");
 
     }
 
     public static InfoConfig loadConfig(String path) {
         try {
-            YamlConfigLoader loader = new YamlConfigLoader();
+            YamlConfig loader = new YamlConfig();
             Map<String, Object> configMap = loader.loadConfig(path);
             return new InfoConfig(configMap);
         } catch (Exception e) {
-            System.err.println("Error while loading InfoConfig: " + e.getMessage());
+            ServersLink.LOGGER.error("Error while loading info.yml: {}", e.getMessage());
             return null;
         }
     }
-
 }

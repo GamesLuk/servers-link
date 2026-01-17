@@ -1,10 +1,8 @@
 package io.github.kgriff0n;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import io.github.kgriff0n.command.ServerCommand;
 import io.github.kgriff0n.configs.InfoConfig;
-import io.github.kgriff0n.configs.YamlConfigLoader;
+import io.github.kgriff0n.configs.YamlConfig;
 import io.github.kgriff0n.event.*;
 import io.github.kgriff0n.server.ServerInfo;
 import net.fabricmc.api.ModInitializer;
@@ -17,13 +15,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 public class ServersLink implements ModInitializer {
 	public static final String MOD_ID = "servers-link";
@@ -33,10 +26,6 @@ public class ServersLink implements ModInitializer {
 	private static ServerInfo serverInfo;
 	private static String gatewayIp;
 	private static int gatewayPort;
-    private static List<String> permissionsAddOnJoin;
-    private static List<String> permissionsAddOnLeave;
-    private static List<String> permissionsRemoveOnJoin;
-    private static List<String> permissionsRemoveOnLeave;
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
@@ -44,10 +33,17 @@ public class ServersLink implements ModInitializer {
 	public static boolean IS_RUNNING = true;
 	public static boolean CONFIG_ERROR = false;
 
-	@Override
+    @Override
 	public void onInitialize() {
 
+        YamlConfig.generateConfig("configs/info.yml", "info.yml");
+
 		loadServerInfo();
+
+        if(isGateway){
+            YamlConfig.generateConfig("configs/groups.yml", "groups.yml");
+            YamlConfig.generateConfig("configs/config.yml", "config.yml");
+        }
 
 		ServerCommand.register();
 
@@ -58,6 +54,22 @@ public class ServersLink implements ModInitializer {
 		ServerPlayConnectionEvents.DISCONNECT.register(new PlayerDisconnect());
 		ServerTickEvents.START_SERVER_TICK.register(new ServerTick());
 		ServerEntityEvents.ENTITY_LOAD.register(new PlayerJoin());
+    }
+
+    private void loadServerInfo() {
+        Path path = CONFIG.resolve("info.yml");
+        InfoConfig infoConfig = InfoConfig.loadConfig(path.toString());
+        if (infoConfig == null) {CONFIG_ERROR = true; return;}
+
+        isGateway = infoConfig.isGateway();
+        gatewayIp = infoConfig.getGatewayIp();
+        gatewayPort = infoConfig.getGatewayPort();
+        serverInfo = new ServerInfo(
+                infoConfig.getGroup(),
+                infoConfig.getServerName(),
+                infoConfig.getServerIp(),
+                infoConfig.getServerPort()
+        );
     }
 
 	public static ServerInfo getServerInfo() {
@@ -71,31 +83,4 @@ public class ServersLink implements ModInitializer {
 	public static int getGatewayPort() {
 		return gatewayPort;
 	}
-
-	private void loadServerInfo() {
-		Path path = CONFIG.resolve("info.yml");
-        InfoConfig infoConfig = InfoConfig.loadConfig(path.toString());
-        if (infoConfig == null) {CONFIG_ERROR = true; return;}
-
-        isGateway = infoConfig.isGateway();
-        gatewayIp = infoConfig.getGatewayIp();
-        gatewayPort = infoConfig.getGatewayPort();
-        serverInfo = new ServerInfo(
-                infoConfig.getGroup(),
-                infoConfig.getServerName(),
-                infoConfig.getServerIp(),
-                infoConfig.getServerPort()
-        );
-	}
-
-    public static List<String> getPermissions(String type) {
-
-        return switch (type) {
-            case "add-on-join" -> permissionsAddOnJoin;
-            case "add-on-leave" -> permissionsAddOnLeave;
-            case "remove-on-join" -> permissionsRemoveOnJoin;
-            case "remove-on-leave" -> permissionsRemoveOnLeave;
-            default -> List.of();
-        };
-    }
 }

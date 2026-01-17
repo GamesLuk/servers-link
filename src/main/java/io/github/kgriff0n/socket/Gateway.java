@@ -43,7 +43,7 @@ public class Gateway extends Thread {
         try {
             serverSocket = new ServerSocket(port);
             gateway = this;
-            groups = GroupsConfig.loadConfig(ServersLink.CONFIG.resolve("groups.json").toString());
+            groups = GroupsConfig.loadConfig(ServersLink.CONFIG.resolve("groups.yml").toString());
             ServersLinkApi.addServer(ServersLink.getServerInfo(), null);
         } catch (IOException e) {
             ServersLink.LOGGER.info("Unable to start central server");

@@ -27,9 +27,9 @@ public class YamlConfig {
 
     public static void generateConfig(String resourcePath, String targetPath) {
         Path target = ServersLink.CONFIG.resolve(targetPath);
+        resourcePath = "/" + resourcePath;
 
         if (Files.exists(target)) {
-            ServersLink.LOGGER.warn("Config file already exists at: {}", targetPath);
             return;
         }
 
@@ -43,8 +43,21 @@ public class YamlConfig {
             Files.copy(inputStream, target, StandardCopyOption.REPLACE_EXISTING);
 
             ServersLink.LOGGER.info("Config file created at: {}", targetPath);
+            sendConfigWarning();
         } catch (IOException e) {
             ServersLink.LOGGER.error("Error while creating config file: {}", e.getMessage());
         }
+    }
+
+    public static void sendConfigWarning(){
+        ServersLink.LOGGER.warn("""
+                ---------------------------------------------------------------------------------
+                New configuration files created! Please configure servers-link.
+                The configuration file(s) can be found in the 'config/servers-link' folder.
+                For more information, visit https://github.com/kgriff0n/servers-link/blob/master/README.md
+                For help, join the Discord: https://discord.gg/ZeHm57BEyt
+                Please edit the files and then restart the server.
+                ---------------------------------------------------------------------------------
+                """);
     }
 }

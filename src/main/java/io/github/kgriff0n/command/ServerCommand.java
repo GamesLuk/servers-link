@@ -15,6 +15,7 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.Vec3ArgumentType;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -34,11 +35,11 @@ public class ServerCommand {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("server")
                 .then(literal("list")
-                        .requires(Permissions.require("server.list", 2))
+                        .requires(Permissions.require("server.list", PermissionLevel.GAMEMASTERS))
                         .executes(context -> list(context.getSource()))
                 )
                 .then(literal("join")
-                        .requires(Permissions.require("server.join", 2))
+                        .requires(Permissions.require("server.join", PermissionLevel.GAMEMASTERS))
                         .then(argument("server", StringArgumentType.string())
                                 .suggests((context, builder) -> {
                                     for (String serverName : ServersLinkApi.getServerNames()) {
@@ -48,10 +49,10 @@ public class ServerCommand {
                                 })
                                 .executes(context -> join(context.getSource().getPlayer(), StringArgumentType.getString(context, "server")))
                                 .then(argument("player", EntityArgumentType.player())
-                                        .requires(Permissions.require("server.join.other", 2))
+                                        .requires(Permissions.require("server.join.other", PermissionLevel.GAMEMASTERS))
                                         .executes(context -> join(EntityArgumentType.getPlayer(context, "player"), StringArgumentType.getString(context, "server")))
                                         .then(argument("position", Vec3ArgumentType.vec3())
-                                                .requires(Permissions.require("server.join.position", 2))
+                                                .requires(Permissions.require("server.join.position", PermissionLevel.GAMEMASTERS))
                                                 .executes(context -> joinPos(EntityArgumentType.getPlayer(context, "player"), StringArgumentType.getString(context, "server"), Vec3ArgumentType.getVec3(context, "position")))
                                         )
                                 )
@@ -59,29 +60,29 @@ public class ServerCommand {
 
                 )
                 .then(literal("whereis")
-                        .requires(Permissions.require("server.whereis", 2))
+                        .requires(Permissions.require("server.whereis", PermissionLevel.GAMEMASTERS))
                         .then(argument("player", EntityArgumentType.player())
                                 .executes(context -> whereis(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
                         )
                 )
                 .then(literal("tpto")
-                        .requires(Permissions.require("server.tpto", 2))
+                        .requires(Permissions.require("server.tpto", PermissionLevel.GAMEMASTERS))
                         .then(argument("player", EntityArgumentType.player())
                                 .executes(context -> teleportTo(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
                         )
                 )
                 .then(literal("tphere")
-                        .requires(Permissions.require("server.tphere", 2))
+                        .requires(Permissions.require("server.tphere", PermissionLevel.GAMEMASTERS))
                         .then(argument("player", EntityArgumentType.player())
                                 .executes(context -> teleportHere(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
                         )
                 )
                 .then(literal("dummyplayerlist")
-                        .requires(Permissions.require("server.dummyplayerlist", 2))
+                        .requires(Permissions.require("server.dummyplayerlist", PermissionLevel.GAMEMASTERS))
                         .executes(context -> dummyPlayerList(context.getSource()))
                 )
                 .then(CommandManager.literal("run")
-                        .requires(Permissions.require("server.run", 2))
+                        .requires(Permissions.require("server.run", PermissionLevel.GAMEMASTERS))
                         .redirect(dispatcher.getRoot()))
         ));
     }

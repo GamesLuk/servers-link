@@ -4,6 +4,7 @@ import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.api.ServersLinkApi;
 import io.github.kgriff0n.server.Settings;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.command.permission.PermissionPredicate;
 import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -56,7 +57,7 @@ public class CommandPacket implements Packet {
                     player.getCommandOutput(),
                     player.getEntityPos(),
                     player.getRotationClient(),
-                    player.getEntityWorld() instanceof ServerWorld ? (ServerWorld)player.getEntityWorld() : null,
+                    player.getEntityWorld() instanceof ServerWorld ? player.getEntityWorld() : null,
                     SERVER.getPermissionLevel(new PlayerConfigEntry(player.getUuid(), player.getName().getString())),
                     "do-not-send-back",
                     player.getDisplayName(),
@@ -69,7 +70,7 @@ public class CommandPacket implements Packet {
                     SERVER.getOverworld() == null ? Vec3d.ZERO : Vec3d.of(SERVER.getOverworld().getSpawnPoint().getPos()),
                     Vec2f.ZERO,
                     SERVER.getOverworld(),
-                    4,
+                    PermissionPredicate.ALL,
                     "do-not-send-back",
                     Text.literal("Server"),
                     SERVER,

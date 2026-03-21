@@ -1,5 +1,6 @@
 package io.github.kgriff0n.packet.play;
 
+import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.api.ServersLinkApi;
 import io.github.kgriff0n.server.Settings;
@@ -29,7 +30,7 @@ public class CommandPacket implements Packet {
 
     @Override
     public boolean shouldReceive(Settings settings) {
-        return command.startsWith("server run ")
+        return command.startsWith(ServersLink.getCommandName() + " run ")
                 || settings.isWhitelistSynced() && command.startsWith("whitelist")
                 || settings.isRolesSynced() &&
                     (command.startsWith("op") || command.startsWith("deop")
@@ -40,7 +41,7 @@ public class CommandPacket implements Packet {
     @Override
     public void onReceive() {
         String cmd;
-        if (command.startsWith("server run ")) {
+        if (command.startsWith(ServersLink.getCommandName() + " run ")) {
             cmd = command.substring(11);
         } else {
             cmd = command;

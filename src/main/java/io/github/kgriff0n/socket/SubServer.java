@@ -98,6 +98,15 @@ public class SubServer extends Thread {
                     } catch (IOException e) {
                         ServersLink.LOGGER.error("Unable to connect to gateway: {}", e.getMessage());
                         try {
+                            if (clientSocket != null) clientSocket.close();
+                        } catch (IOException ex) {
+                            // ignore
+                        }
+                        clientSocket = null;
+                        out = null;
+                        in = null;
+
+                        try {
                             Thread.sleep(60000); // Wait 1 min
                         } catch (InterruptedException ex) {
                             break;

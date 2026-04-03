@@ -41,6 +41,7 @@ public class PlayerDisconnect implements ServerPlayConnectionEvents.Disconnect {
             /* Send packet ONLY if the player is not transferred */
             if (!ServersLinkApi.getPreventDisconnect().contains(uuid)) {
                 connection.send(packet);
+                System.out.println("Sent PlayerDisconnectPacket for player " + player.getName().getString());
             }
         }
     }

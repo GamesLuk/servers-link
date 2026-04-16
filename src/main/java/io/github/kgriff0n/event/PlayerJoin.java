@@ -2,6 +2,7 @@ package io.github.kgriff0n.event;
 
 import io.github.kgriff0n.PlayersInformation;
 import io.github.kgriff0n.ServersLink;
+import io.github.kgriff0n.api.FakePlayerApi;
 import io.github.kgriff0n.packet.info.NewPlayerPacket;
 import io.github.kgriff0n.packet.server.PlayerAcknowledgementPacket;
 import io.github.kgriff0n.packet.info.ServersInfoPacket;
@@ -36,6 +37,8 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerEntity
         ServerPlayerEntity newPlayer = serverPlayNetworkHandler.player;
 
         if (!joinedPlayers.contains(newPlayer)) joinedPlayers.add(newPlayer);
+
+        if(FakePlayerApi.isFake(minecraftServer, newPlayer.getName().getString())) return;
 
         /* Dummy player packet */
         NewPlayerPacket dummyPlayer = new NewPlayerPacket(newPlayer.getGameProfile());

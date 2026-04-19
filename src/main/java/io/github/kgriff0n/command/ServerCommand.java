@@ -129,9 +129,12 @@ public class ServerCommand {
 
     private static int join(ServerPlayerEntity player, String serverName) {
         if (player != null) {
-            /* Save player pos */
+            /* Save player state for the current server before transfer */
             String name = ServersLink.getServerInfo().getName();
             ((IPlayerServersLink) player).servers_link$setServerPos(name, player.getEntityPos());
+            ((IPlayerServersLink) player).servers_link$setServerRot(name, player.getYaw(), player.getPitch());
+            ((IPlayerServersLink) player).servers_link$setServerDim(name, player.getEntityWorld());
+            ((IPlayerServersLink) player).servers_link$setServerGameMode(name, player.interactionManager.getGameMode());
 
             if (name.equals(serverName)) {
                 player.sendMessage(Text.literal("You are already connected to this server").formatted(Formatting.RED));
@@ -146,6 +149,7 @@ public class ServerCommand {
 
     private static int joinPos(ServerPlayerEntity player, String serverName, Vec3d pos) {
         ((IPlayerServersLink) player).servers_link$setServerPos(serverName, pos);
+        ((IPlayerServersLink) player).servers_link$setServerRot(serverName, player.getYaw(), player.getPitch());
         return join(player, serverName);
     }
 

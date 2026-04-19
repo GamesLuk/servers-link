@@ -10,6 +10,7 @@ import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -34,12 +35,16 @@ public class PlayerEntityMixin implements IPlayerServersLink {
     @Unique
     private HashMap<String, ServerWorld> serversDim = new HashMap<>();
 
+    @Unique
+    private HashMap<String, Integer> serversGameMode = new HashMap<>();
+
     @Inject(at = @At("HEAD"), method = "writeCustomData")
     private void writeNbt(WriteView view, CallbackInfo ci) {
         WriteView serversLink = view.get("ServersLink");
         WriteView posView = serversLink.get("Position");
         WriteView rotView = serversLink.get("Rotation");
         WriteView dimView = serversLink.get("Dimension");
+        WriteView gameModeView = serversLink.get("GameMode");
 
         for (Map.Entry<String, Vec3d> entry : serversPos.entrySet()) {
             String name = entry.getKey();
@@ -64,7 +69,11 @@ public class PlayerEntityMixin implements IPlayerServersLink {
             String name = entry.getKey();
             ServerWorld dim = entry.getValue();
 
-            dimView.putString(name, dim.getRegistryKey().getValue().toString().split(":")[1]);
+            dimView.putString(name, dim.getRegistryKey().getValue().toString());
+        }
+
+        for (Map.Entry<String, Integer> entry : serversGameMode.entrySet()) {
+            gameModeView.putInt(entry.getKey(), entry.getValue());
         }
     }
 
@@ -76,6 +85,8 @@ public class PlayerEntityMixin implements IPlayerServersLink {
                 Codec.unboundedMap(Codec.STRING, Codec.STRING);
         Codec<Map<String, List<Float>>> rotMapCodec =
                 Codec.unboundedMap(Codec.STRING, Codec.list(Codec.FLOAT));
+        Codec<Map<String, Integer>> gameModeMapCodec =
+                Codec.unboundedMap(Codec.STRING, Codec.INT);
 
 
         view.getOptionalReadView("ServersLink")
@@ -105,13 +116,21 @@ public class PlayerEntityMixin implements IPlayerServersLink {
                 .ifPresent(dimMap -> {
                     this.serversDim = new HashMap<>();
                     dimMap.forEach((server, dimId) -> {
-                        RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.ofVanilla(dimId));
+                        Identifier identifier = Identifier.tryParse(dimId);
+                        if (identifier == null) {
+                            return;
+                        }
+                        RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, identifier);
                         World world = Objects.requireNonNull(((PlayerEntity) (Object) this).getEntityWorld().getServer()).getWorld(key);
                         if (world instanceof ServerWorld serverWorld) {
                             serversDim.put(server, serverWorld);
                         }
                     });
                 });
+
+        view.getOptionalReadView("ServersLink")
+                .flatMap(v -> v.read("GameMode", gameModeMapCodec))
+                .ifPresent(gameModeMap -> this.serversGameMode = new HashMap<>(gameModeMap));
     }
 
     @Override
@@ -158,5 +177,21 @@ public class PlayerEntityMixin implements IPlayerServersLink {
     @Override
     public void servers_link$removeServerDim(String name) {
         this.serversDim.remove(name);
+    }
+
+    @Override
+    public void servers_link$setServerGameMode(String name, GameMode gameMode) {
+        this.serversGameMode.put(name, gameMode.getIndex());
+    }
+
+    @Override
+    public GameMode servers_link$getServerGameMode(String name) {
+        Integer id = this.serversGameMode.get(name);
+        return id == null ? null : GameMode.byIndex(id);
+    }
+
+    @Override
+    public void servers_link$removeServerGameMode(String name) {
+        this.serversGameMode.remove(name);
     }
 }

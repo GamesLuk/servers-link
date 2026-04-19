@@ -38,7 +38,7 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerEntity
 
         if (!joinedPlayers.contains(newPlayer)) joinedPlayers.add(newPlayer);
 
-        if(FakePlayerApi.isFake(minecraftServer, newPlayer.getName().getString())) return;
+        if (FakePlayerApi.isFake(minecraftServer, newPlayer)) return;
 
         /* Dummy player packet */
         NewPlayerPacket dummyPlayer = new NewPlayerPacket(newPlayer.getGameProfile());
@@ -105,7 +105,8 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerEntity
         List<Float> rot = ((IPlayerServersLink) newPlayer).servers_link$getServerRot(ServersLink.getServerInfo().getName());
 
         if (dim == null) {
-            dim = (ServerWorld) newPlayer.getEntityWorld();
+            ServerWorld defaultWorld = newPlayer.getEntityWorld().getServer().getOverworld();
+            dim = defaultWorld != null ? defaultWorld : (ServerWorld) newPlayer.getEntityWorld();
         }
 
         if (pos == null) {

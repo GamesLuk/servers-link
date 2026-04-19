@@ -2,6 +2,7 @@ package io.github.kgriff0n.util;
 
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameMode;
 
 import java.util.List;
 
@@ -18,5 +19,9 @@ public interface IPlayerServersLink {
     void servers_link$setServerDim(String name, ServerWorld dim);
     ServerWorld servers_link$getServerDim(String name);
     void servers_link$removeServerDim(String name);
+
+    void servers_link$setServerGameMode(String name, GameMode gameMode);
+    GameMode servers_link$getServerGameMode(String name);
+    void servers_link$removeServerGameMode(String name);
 
 }

@@ -49,8 +49,6 @@ public class PlayerDisconnectPacket implements Packet {
 
     @Override
     public void onGatewayReceive(String sender) {
-        boolean removed = FakePlayerApi.deleteFake(SERVER, name);
-        System.out.println("PlayerDisconnectPacket: removed fake player: " + removed);
 
         Packet.super.onGatewayReceive(sender);
         Gateway.getInstance().removePlayer(uuid);

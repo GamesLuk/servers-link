@@ -104,10 +104,19 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerEntity
         ServerWorld dim = ((IPlayerServersLink) newPlayer).servers_link$getServerDim(ServersLink.getServerInfo().getName());
         List<Float> rot = ((IPlayerServersLink) newPlayer).servers_link$getServerRot(ServersLink.getServerInfo().getName());
 
-        if (pos == null || dim == null || rot == null) {
-            // Player data not found, probably first join - teleport to world spawn
-            pos = new Vec3d(newPlayer.getEntityWorld().getSpawnPoint().getPos().getX() + 0.5, newPlayer.getEntityWorld().getSpawnPoint().getPos().getY(), newPlayer.getEntityWorld().getSpawnPoint().getPos().getZ() + 0.5);
-            dim = newPlayer.getEntityWorld().getServer().getOverworld(); // Change in 1.21.9 because world spawn can be in any dimension
+        if (dim == null) {
+            dim = (ServerWorld) newPlayer.getEntityWorld();
+        }
+
+        if (pos == null) {
+            pos = new Vec3d(
+                    dim.getSpawnPoint().getPos().getX() + 0.5,
+                    dim.getSpawnPoint().getPos().getY(),
+                    dim.getSpawnPoint().getPos().getZ() + 0.5
+            );
+        }
+
+        if (rot == null || rot.size() < 2) {
             rot = List.of(newPlayer.getYaw(), newPlayer.getPitch());
         }
 

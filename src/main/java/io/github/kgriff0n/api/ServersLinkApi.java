@@ -12,13 +12,13 @@ import io.github.kgriff0n.socket.G2SConnection;
 import io.github.kgriff0n.socket.SubServer;
 import io.github.kgriff0n.util.DummyPlayer;
 import io.github.kgriff0n.server.ServerInfo;
-import net.minecraft.network.packet.s2c.common.ServerTransferS2CPacket;
-import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.ClientboundTransferPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
+import net.minecraft.server.level.ServerPlayer;
 
 import static io.github.kgriff0n.ServersLink.SERVER;
 
@@ -115,7 +115,7 @@ public class ServersLinkApi {
             Gateway gateway = Gateway.getInstance();
             server.getPlayersList().forEach((uuid, name) -> {
                 gateway.sendAll(new PlayerDisconnectPacket(uuid));
-                dummyPlayers.removeIf(player -> player.getUuid().equals(uuid));
+                dummyPlayers.removeIf(player -> player.getUUID().equals(uuid));
             });
             gateway.sendAll(new ServersInfoPacket(ServersLinkApi.getServerList()));
             server.getPlayersList().clear();
@@ -167,11 +167,11 @@ public class ServersLinkApi {
      * Sends a message to all operator players (ops).
      * @param text the text to send
      */
-    public static void broadcastToOp(Text text) {
-        for (String playerName : SERVER.getPlayerManager().getOpList().getNames()) {
-            ServerPlayerEntity player = SERVER.getPlayerManager().getPlayer(playerName);
+    public static void broadcastToOp(Component text) {
+        for (String playerName : SERVER.getPlayerList().getOps().getUserList()) {
+            ServerPlayer player = SERVER.getPlayerList().getPlayerByName(playerName);
             if (player != null && !(player instanceof DummyPlayer)) {
-                player.sendMessage(text);
+                player.sendSystemMessage(text);
             }
         }
     }
@@ -184,11 +184,11 @@ public class ServersLinkApi {
      * @param profile profile of the player, must contain his uuid, name and textures properties
      */
     public static void addDummyPlayer(GameProfile profile) {
-        List<ServerPlayerEntity> playerList = SERVER.getPlayerManager().getPlayerList();
+        List<ServerPlayer> playerList = SERVER.getPlayerList().getPlayers();
 
         boolean alreadyPresent = false;
         for (DummyPlayer player : dummyPlayers) {
-            if (player.getUuid().equals(profile.id())) {
+            if (player.getUUID().equals(profile.id())) {
                 alreadyPresent = true;
             }
         }
@@ -197,11 +197,11 @@ public class ServersLinkApi {
             dummyPlayers.add(new DummyPlayer(profile));
 
             /* Update player list for all players */
-            List<ServerPlayerEntity> allPlayers = new ArrayList<>();
+            List<ServerPlayer> allPlayers = new ArrayList<>();
             allPlayers.addAll(playerList);
             allPlayers.addAll(dummyPlayers);
-            for (ServerPlayerEntity player : playerList) {
-                player.networkHandler.sendPacket(PlayerListS2CPacket.entryFromPlayer(allPlayers));
+            for (ServerPlayer player : playerList) {
+                player.connection.send(ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(allPlayers));
             }
         }
     }
@@ -215,9 +215,9 @@ public class ServersLinkApi {
      * @param uuid the UUID of the player
      * @return the player with this UUID
      */
-    public static ServerPlayerEntity getDummyPlayer(UUID uuid) {
+    public static ServerPlayer getDummyPlayer(UUID uuid) {
         for (DummyPlayer player : dummyPlayers) {
-            if (player.getUuid().equals(uuid)) return player;
+            if (player.getUUID().equals(uuid)) return player;
         }
         return null;
     }
@@ -227,9 +227,9 @@ public class ServersLinkApi {
      * @param playerName the name of the player
      * @return the player with this UUID
      */
-    public static ServerPlayerEntity getDummyPlayer(String playerName) {
+    public static ServerPlayer getDummyPlayer(String playerName) {
         for (DummyPlayer player : dummyPlayers) {
-            if (player.getNameForScoreboard().equals(playerName)) return player;
+            if (player.getScoreboardName().equals(playerName)) return player;
         }
         return null;
     }
@@ -240,21 +240,21 @@ public class ServersLinkApi {
      * @param originServer name of the current server
      * @param serverName the name of the server to which the player will be transferred
      */
-    public static void transferPlayer(ServerPlayerEntity player, String originServer, String serverName) {
+    public static void transferPlayer(ServerPlayer player, String originServer, String serverName) {
         ServerInfo server = ServersLinkApi.getServer(serverName);
 
         if (ServersLink.isGateway) {
             /* add player to other server list and send packet */
-            PlayerTransferPacket transferPacket = new PlayerTransferPacket(player.getUuid(), serverName);
+            PlayerTransferPacket transferPacket = new PlayerTransferPacket(player.getUUID(), serverName);
             transferPacket.onGatewayReceive(originServer);
         } else {
             /* send packet, add player to transferred list and transfer the player */
             SubServer connection = SubServer.getInstance();
-            connection.send(new PlayerTransferPacket(player.getUuid(), serverName));
+            connection.send(new PlayerTransferPacket(player.getUUID(), serverName));
         }
 
-        player.networkHandler.sendPacket(new ServerTransferS2CPacket(server.getIp(), server.getPort()));
-        ServerTick.scheduleDisconnect(player.getUuid(), 20); // delay
+        player.connection.send(new ClientboundTransferPacket(server.getIp(), server.getPort()));
+        ServerTick.scheduleDisconnect(player.getUUID(), 20); // delay
     }
 
 }

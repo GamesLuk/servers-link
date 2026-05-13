@@ -13,23 +13,22 @@ import io.github.kgriff0n.api.ServersLinkApi;
 import io.github.kgriff0n.server.ServerInfo;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.Vec3ArgumentType;
-import net.minecraft.command.permission.PermissionLevel;
-import net.minecraft.network.packet.s2c.play.PositionFlag;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.coordinates.Vec3Argument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.world.entity.Relative;
+import net.minecraft.world.phys.Vec3;
 import java.util.EnumSet;
 import java.util.Locale;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public class ServerCommand {
     public static void register() {
@@ -48,12 +47,12 @@ public class ServerCommand {
                                     return builder.buildFuture();
                                 })
                                 .executes(context -> join(context.getSource().getPlayer(), StringArgumentType.getString(context, "server")))
-                                .then(argument("player", EntityArgumentType.player())
+                                .then(argument("player", EntityArgument.player())
                                         .requires(Permissions.require("server.join.other", PermissionLevel.GAMEMASTERS))
-                                        .executes(context -> join(EntityArgumentType.getPlayer(context, "player"), StringArgumentType.getString(context, "server")))
-                                        .then(argument("position", Vec3ArgumentType.vec3())
+                                        .executes(context -> join(EntityArgument.getPlayer(context, "player"), StringArgumentType.getString(context, "server")))
+                                        .then(argument("position", Vec3Argument.vec3())
                                                 .requires(Permissions.require("server.join.position", PermissionLevel.GAMEMASTERS))
-                                                .executes(context -> joinPos(EntityArgumentType.getPlayer(context, "player"), StringArgumentType.getString(context, "server"), Vec3ArgumentType.getVec3(context, "position")))
+                                                .executes(context -> joinPos(EntityArgument.getPlayer(context, "player"), StringArgumentType.getString(context, "server"), Vec3Argument.getVec3(context, "position")))
                                         )
                                 )
                         )
@@ -61,62 +60,62 @@ public class ServerCommand {
                 )
                 .then(literal("whereis")
                         .requires(Permissions.require("server.whereis", PermissionLevel.GAMEMASTERS))
-                        .then(argument("player", EntityArgumentType.player())
-                                .executes(context -> whereis(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
+                        .then(argument("player", EntityArgument.player())
+                                .executes(context -> whereis(context.getSource(), EntityArgument.getPlayer(context, "player")))
                         )
                 )
                 .then(literal("tpto")
                         .requires(Permissions.require("server.tpto", PermissionLevel.GAMEMASTERS))
-                        .then(argument("player", EntityArgumentType.player())
-                                .executes(context -> teleportTo(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
+                        .then(argument("player", EntityArgument.player())
+                                .executes(context -> teleportTo(context.getSource(), EntityArgument.getPlayer(context, "player")))
                         )
                 )
                 .then(literal("tphere")
                         .requires(Permissions.require("server.tphere", PermissionLevel.GAMEMASTERS))
-                        .then(argument("player", EntityArgumentType.player())
-                                .executes(context -> teleportHere(context.getSource(), EntityArgumentType.getPlayer(context, "player")))
+                        .then(argument("player", EntityArgument.player())
+                                .executes(context -> teleportHere(context.getSource(), EntityArgument.getPlayer(context, "player")))
                         )
                 )
                 .then(literal("dummyplayerlist")
                         .requires(Permissions.require("server.dummyplayerlist", PermissionLevel.GAMEMASTERS))
                         .executes(context -> dummyPlayerList(context.getSource()))
                 )
-                .then(CommandManager.literal("run")
+                .then(Commands.literal("run")
                         .requires(Permissions.require("server.run", PermissionLevel.GAMEMASTERS))
                         .redirect(dispatcher.getRoot()))
         ));
     }
 
-    private static int list(ServerCommandSource source) {
-        ServerPlayerEntity player = source.getPlayer();
+    private static int list(CommandSourceStack source) {
+        ServerPlayer player = source.getPlayer();
         if (player != null) {
-            player.sendMessage(Text.literal("Server List").formatted(Formatting.BOLD, Formatting.DARK_GRAY));
+            player.sendSystemMessage(Component.literal("Server List").withStyle(ChatFormatting.BOLD, ChatFormatting.DARK_GRAY));
 
             for (ServerInfo server : ServersLinkApi.getServerList()) {
-                MutableText status = Text.literal("●");
+                MutableComponent status = Component.literal("●");
                 if (server.isDown()) {
-                    status.formatted(Formatting.RED);
+                    status.withStyle(ChatFormatting.RED);
                 } else {
-                    status.formatted(Formatting.GREEN);
+                    status.withStyle(ChatFormatting.GREEN);
                 }
 
-                MutableText players = Text.literal(String.valueOf(server.getPlayersList().size())).formatted(Formatting.WHITE);
+                MutableComponent players = Component.literal(String.valueOf(server.getPlayersList().size())).withStyle(ChatFormatting.WHITE);
 
-                MutableText tps = Text.literal(String.format(Locale.ENGLISH, "%.1f", server.getTps()));
+                MutableComponent tps = Component.literal(String.format(Locale.ENGLISH, "%.1f", server.getTps()));
                 if (server.getTps() > 15) {
-                    tps.formatted(Formatting.GREEN);
+                    tps.withStyle(ChatFormatting.GREEN);
                 } else if (server.getTps() > 10) {
-                    tps.formatted(Formatting.YELLOW);
+                    tps.withStyle(ChatFormatting.YELLOW);
                 } else if (server.getTps() > 0) {
-                    tps.formatted(Formatting.RED);
+                    tps.withStyle(ChatFormatting.RED);
                 } else {
-                    tps.formatted(Formatting.DARK_RED);
+                    tps.withStyle(ChatFormatting.DARK_RED);
                 }
-                player.sendMessage(
-                        Text.literal("[").append(status).append("] " + server.getName())
+                player.sendSystemMessage(
+                        Component.literal("[").append(status).append("] " + server.getName())
                                 .append(" | ").append(players).append(" player(s)")
                                 .append(" (").append(tps).append(" TPS)")
-                                .formatted(Formatting.GRAY));
+                                .withStyle(ChatFormatting.GRAY));
             }
         } else {
             for (ServerInfo server : ServersLinkApi.getServerList()) {
@@ -127,19 +126,19 @@ public class ServerCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int join(ServerPlayerEntity player, String serverName) {
+    private static int join(ServerPlayer player, String serverName) {
         if (player != null) {
             /* Save player state for the current server before transfer */
             String name = ServersLink.getServerInfo().getName();
-            ((IPlayerServersLink) player).servers_link$setServerPos(name, player.getEntityPos());
-            ((IPlayerServersLink) player).servers_link$setServerRot(name, player.getYaw(), player.getPitch());
-            ((IPlayerServersLink) player).servers_link$setServerDim(name, player.getEntityWorld());
-            ((IPlayerServersLink) player).servers_link$setServerGameMode(name, player.interactionManager.getGameMode());
+            ((IPlayerServersLink) player).servers_link$setServerPos(name, player.position());
+            ((IPlayerServersLink) player).servers_link$setServerRot(name, player.getYRot(), player.getXRot());
+            ((IPlayerServersLink) player).servers_link$setServerDim(name, player.level());
+            ((IPlayerServersLink) player).servers_link$setServerGameMode(name, player.gameMode.getGameModeForPlayer());
 
             if (name.equals(serverName)) {
-                player.sendMessage(Text.literal("You are already connected to this server").formatted(Formatting.RED));
+                player.sendSystemMessage(Component.literal("You are already connected to this server").withStyle(ChatFormatting.RED));
             } else if (ServersLinkApi.getServer(serverName) == null) {
-                player.sendMessage(Text.literal("This server does not exist").formatted(Formatting.RED));
+                player.sendSystemMessage(Component.literal("This server does not exist").withStyle(ChatFormatting.RED));
             } else {
                 ServersLinkApi.transferPlayer(player, ServersLink.getServerInfo().getName(), serverName);
             }
@@ -147,30 +146,30 @@ public class ServerCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int joinPos(ServerPlayerEntity player, String serverName, Vec3d pos) {
+    private static int joinPos(ServerPlayer player, String serverName, Vec3 pos) {
         ((IPlayerServersLink) player).servers_link$setServerPos(serverName, pos);
-        ((IPlayerServersLink) player).servers_link$setServerRot(serverName, player.getYaw(), player.getPitch());
+        ((IPlayerServersLink) player).servers_link$setServerRot(serverName, player.getYRot(), player.getXRot());
         return join(player, serverName);
     }
 
-    private static int whereis(ServerCommandSource source, ServerPlayerEntity player) {
-        ServerPlayerEntity sender = source.getPlayer();
+    private static int whereis(CommandSourceStack source, ServerPlayer player) {
+        ServerPlayer sender = source.getPlayer();
         if (sender != null) {
-            sender.sendMessage(Text.literal(player.getName().getString() + " is on " + ServersLinkApi.whereIs(player.getUuid())));
+            sender.sendSystemMessage(Component.literal(player.getName().getString() + " is on " + ServersLinkApi.whereIs(player.getUUID())));
         } else {
-            ServersLink.LOGGER.info("{} is on {}", player.getName().getString(), ServersLinkApi.whereIs(player.getUuid()));
+            ServersLink.LOGGER.info("{} is on {}", player.getName().getString(), ServersLinkApi.whereIs(player.getUUID()));
         }
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int teleportTo(ServerCommandSource source, ServerPlayerEntity player) {
-        ServerPlayerEntity sender = source.getPlayer();
-        String server = ServersLinkApi.whereIs(player.getUuid());
+    private static int teleportTo(CommandSourceStack source, ServerPlayer player) {
+        ServerPlayer sender = source.getPlayer();
+        String server = ServersLinkApi.whereIs(player.getUUID());
         if (sender == null) return 0;
         if (server.equals(ServersLink.getServerInfo().getName())) {
-            sender.teleport(player.getEntityWorld(), player.getX(), player.getY(), player.getZ(), EnumSet.noneOf(PositionFlag.class), player.getYaw(), player.getPitch(), false);
+            sender.teleportTo(player.level(), player.getX(), player.getY(), player.getZ(), EnumSet.noneOf(Relative.class), player.getYRot(), player.getXRot(), false);
         } else {
-            TeleportationRequestPacket request = new TeleportationRequestPacket(player.getUuid(), sender.getUuid(), ServersLink.getServerInfo().getName(), server);
+            TeleportationRequestPacket request = new TeleportationRequestPacket(player.getUUID(), sender.getUUID(), ServersLink.getServerInfo().getName(), server);
             if (ServersLink.isGateway) {
                 Gateway.getInstance().sendTo(request, server);
             } else {
@@ -180,14 +179,14 @@ public class ServerCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int teleportHere(ServerCommandSource source, ServerPlayerEntity player) {
-        ServerPlayerEntity sender = source.getPlayer();
-        String server = ServersLinkApi.whereIs(player.getUuid());
+    private static int teleportHere(CommandSourceStack source, ServerPlayer player) {
+        ServerPlayer sender = source.getPlayer();
+        String server = ServersLinkApi.whereIs(player.getUUID());
         if (sender == null) return 0;
         if (server.equals(ServersLink.getServerInfo().getName())) {
-            player.teleport(sender.getEntityWorld(), sender.getX(), sender.getY(), sender.getZ(), EnumSet.noneOf(PositionFlag.class), sender.getYaw(), sender.getPitch(), false);
+            player.teleportTo(sender.level(), sender.getX(), sender.getY(), sender.getZ(), EnumSet.noneOf(Relative.class), sender.getYRot(), sender.getXRot(), false);
         } else {
-            TeleportationAcceptPacket accept = new TeleportationAcceptPacket(sender.getX(), sender.getY(), sender.getZ(), player.getUuid(), server, ServersLink.getServerInfo().getName());
+            TeleportationAcceptPacket accept = new TeleportationAcceptPacket(sender.getX(), sender.getY(), sender.getZ(), player.getUUID(), server, ServersLink.getServerInfo().getName());
             if (ServersLink.isGateway) {
                 Gateway.getInstance().sendTo(accept, server);
             } else {
@@ -197,13 +196,13 @@ public class ServerCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int dummyPlayerList(ServerCommandSource source) {
-        ServerPlayerEntity player = source.getPlayer();
+    private static int dummyPlayerList(CommandSourceStack source) {
+        ServerPlayer player = source.getPlayer();
         for (DummyPlayer dummy : ServersLinkApi.getDummyPlayers()) {
             if (player == null) {
-                ServersLink.LOGGER.info(dummy.getNameForScoreboard());
+                ServersLink.LOGGER.info(dummy.getScoreboardName());
             } else {
-                player.sendMessage(dummy.getName());
+                player.sendSystemMessage(dummy.getName());
             }
         }
 

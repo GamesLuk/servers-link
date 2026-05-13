@@ -9,6 +9,7 @@ import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
@@ -27,6 +28,9 @@ public class ServersLink implements ModInitializer {
 	private static ServerInfo serverInfo;
 	private static String gatewayIp;
 	private static int gatewayPort;
+    private static String gatewayGameIp;
+    private static int gatewayGamePort;
+    private static boolean gatewayAvailable = true;
 
     private static String commandName;
 
@@ -43,6 +47,7 @@ public class ServersLink implements ModInitializer {
 
 		ServerCommand.register();
 
+        ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.register(new PlayerJoin());
 		ServerLifecycleEvents.SERVER_STARTED.register(new ServerStart());
 		ServerLifecycleEvents.SERVER_STOPPING.register(new ServerStopping());
 		ServerLifecycleEvents.SERVER_STOPPED.register(new ServerStopped());
@@ -58,12 +63,26 @@ public class ServersLink implements ModInitializer {
 	public static String getGatewayIp() {
 		return gatewayIp;
 	}
-
 	public static int getGatewayPort() {
 		return gatewayPort;
 	}
 
+    public static String getGatewayGameIp() {
+        return gatewayGameIp;
+    }
+    public static int getGatewayGamePort() {
+        return gatewayGamePort;
+    }
+
+    public static boolean isGatewayAvailable() {
+        return gatewayAvailable;
+    }
+    public static void setGatewayAvailable(boolean isGatewayAvailable) {
+        ServersLink.gatewayAvailable = isGatewayAvailable;
+    }
+
     public static String getCommandName() {
+        if (commandName == null) return "server";
         return commandName;
     }
 
@@ -76,6 +95,8 @@ public class ServersLink implements ModInitializer {
             isGateway = jsonObject.get("gateway").getAsBoolean();
 			gatewayIp = jsonObject.get("gateway-ip").getAsString();
 			gatewayPort = jsonObject.get("gateway-port").getAsInt();
+            gatewayGameIp = jsonObject.get("gateway-game-ip").getAsString();
+            gatewayGamePort = jsonObject.get("gateway-game-port").getAsInt();
 			serverInfo = new ServerInfo(
 					jsonObject.get("group").getAsString(),
 					jsonObject.get("server-name").getAsString(),

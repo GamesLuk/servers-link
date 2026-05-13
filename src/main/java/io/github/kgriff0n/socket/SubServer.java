@@ -94,8 +94,11 @@ public class SubServer extends Thread {
                         send(new NewServerPacket(ServersLink.getServerInfo()));
                         send(new ServerStatusPacket(ServersLink.getServerInfo().getName(), 20.0f, false));
 
+                        ServersLink.setGatewayAvailable(true);
                         ServersLink.LOGGER.info("Connected to gateway!");
+
                     } catch (IOException e) {
+                        ServersLink.setGatewayAvailable(false);
                         ServersLink.LOGGER.error("Unable to connect to gateway: {}", e.getMessage());
                         try {
                             if (clientSocket != null) clientSocket.close();

@@ -4,10 +4,9 @@ import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.socket.Gateway;
 import io.github.kgriff0n.socket.SubServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.Vec3d;
-
 import java.util.UUID;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
 
 public class TeleportationRequestPacket implements Packet {
 
@@ -27,14 +26,14 @@ public class TeleportationRequestPacket implements Packet {
 
     @Override
     public void onReceive() {
-        ServerPlayerEntity player = ServersLink.SERVER.getPlayerManager().getPlayer(targetUuid);
-        Vec3d pos = player != null ? player.getEntityPos() : null;
+        ServerPlayer player = ServersLink.SERVER.getPlayerList().getPlayer(targetUuid);
+        Vec3 pos = player != null ? player.position() : null;
 
         if (ServersLink.isGateway) { //FIXME
             if (this.destinationServer.equals(ServersLink.getServerInfo().getName())) {
                 /* Execute packet from hub */
                 if (pos != null) {
-                    Gateway.getInstance().sendTo(new TeleportationAcceptPacket(pos.getX(), pos.getY(), pos.getZ(), this.senderUuid, this.originServer, this.destinationServer), this.originServer);
+                    Gateway.getInstance().sendTo(new TeleportationAcceptPacket(pos.x(), pos.y(), pos.z(), this.senderUuid, this.originServer, this.destinationServer), this.originServer);
                 }
             } else {
                 /* Redirect the packet to the other server */
@@ -43,7 +42,7 @@ public class TeleportationRequestPacket implements Packet {
         } else {
             /* Sub-server receive the packet */
             if (pos != null) {
-                SubServer.getInstance().send(new TeleportationAcceptPacket(pos.getX(), pos.getY(), pos.getZ(), this.senderUuid, this.originServer, this.destinationServer));
+                SubServer.getInstance().send(new TeleportationAcceptPacket(pos.x(), pos.y(), pos.z(), this.senderUuid, this.originServer, this.destinationServer));
             }
         }
     }

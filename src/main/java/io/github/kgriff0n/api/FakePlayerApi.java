@@ -2,8 +2,7 @@ package io.github.kgriff0n.api;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-
+import net.minecraft.server.level.ServerPlayer;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
@@ -62,14 +61,14 @@ public class FakePlayerApi {
         }
     }
 
-    public static boolean isFake(MinecraftServer server, ServerPlayerEntity player) {
+    public static boolean isFake(MinecraftServer server, ServerPlayer player) {
         if (!IS_LOADED || player == null) return false;
         try {
             Class<?> apiClass = Class.forName("de.gamesluk.fakeplayerapi.api.FakePlayerAPI");
-            Method method = apiClass.getMethod("isFake", ServerPlayerEntity.class);
+            Method method = apiClass.getMethod("isFake", ServerPlayer.class);
             return (boolean) method.invoke(null, player);
         } catch (NoSuchMethodException ignored) {
-            if (isFake(server, player.getUuid())) {
+            if (isFake(server, player.getUUID())) {
                 return true;
             }
             return isFake(server, player.getName().getString());

@@ -40,6 +40,12 @@ public class CommandPacket implements Packet {
 
     @Override
     public void onReceive() {
+        String cmd;
+        if (command.startsWith(FakePlayerApi.getCommandName() + " run ")) {
+            cmd = command.substring(FakePlayerApi.getCommandName().length() + 5);
+        } else {
+            cmd = command;
+        }
         CommandSourceStack source;
 
         ServerPlayer player = null;
@@ -72,6 +78,6 @@ public class CommandPacket implements Packet {
                     null
             );
         }
-        SERVER.getCommands().performPrefixedCommand(source, command);
+        SERVER.getCommands().performPrefixedCommand(source, cmd);
     }
 }

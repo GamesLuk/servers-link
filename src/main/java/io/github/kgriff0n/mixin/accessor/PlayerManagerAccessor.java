@@ -1,4 +1,4 @@
-package io.github.kgriff0n.mixin;
+package io.github.kgriff0n.mixin.accessor;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;

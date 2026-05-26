@@ -1,4 +1,4 @@
-package io.github.kgriff0n.event;
+package io.github.kgriff0n.event.listener;
 
 import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.packet.info.ServerStatusPacket;
@@ -8,7 +8,11 @@ import io.github.kgriff0n.socket.SubServer;
 import io.github.kgriff0n.api.ServersLinkApi;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
+
 import net.minecraft.server.level.ServerPlayer;
 import java.util.Iterator;
 import java.util.Map;
@@ -26,7 +30,7 @@ public class ServerTick implements ServerTickEvents.StartTick {
     private int count = 0;
 
     @Override
-    public void onStartTick(MinecraftServer server) {
+    public void onStartTick(@NotNull MinecraftServer server) {
         count++;
         if (count >= 600) { // every 30s
             count = 0;
@@ -34,7 +38,7 @@ public class ServerTick implements ServerTickEvents.StartTick {
             /* update self */
             ServersLink.getServerInfo().setTps(tps);
             if (ServersLink.isGateway) {
-                Gateway.getInstance().sendAll(new ServersInfoPacket(ServersLinkApi.getServerList()));
+                Gateway.getInstance().sendToAll(new ServersInfoPacket(ServersLinkApi.getServerList()));
             } else {
                 SubServer.getInstance().send(new ServerStatusPacket(ServersLink.getServerInfo().getName(), tps, false));
             }

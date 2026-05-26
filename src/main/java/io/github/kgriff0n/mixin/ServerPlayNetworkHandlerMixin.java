@@ -1,7 +1,6 @@
 package io.github.kgriff0n.mixin;
 
 import com.mojang.serialization.JsonOps;
-import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.packet.play.PlayerChatPacket;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
@@ -32,7 +31,7 @@ public abstract class ServerPlayNetworkHandlerMixin {
     private void sendChatMessage(PlayerChatMessage message, ChatType.Bound params, CallbackInfo ci) {
         Component formattedMessage = params.decorate(message.decoratedContent());
         PlayerChatPacket packet = new PlayerChatPacket(ComponentSerialization.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, SERVER.registryAccess()), formattedMessage).getOrThrow().toString(), this.getPlayer().getName().getString());
-        ServersLinkApi.send(packet, ServersLink.getServerInfo().getName());
+        ServersLinkApi.send(packet);
     }
 
     @Redirect(method = "removePlayerFromWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V"))

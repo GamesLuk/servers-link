@@ -1,4 +1,4 @@
-package io.github.kgriff0n.event;
+package io.github.kgriff0n.event.listener;
 
 import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.packet.play.PlayerDisconnectPacket;
@@ -26,16 +26,12 @@ public class PlayerDisconnect implements ServerPlayConnectionEvents.Disconnect {
             Gateway gateway = Gateway.getInstance();
             /* Delete player from list and send packet ONLY if the player is not transferred */
             if (!ServersLinkApi.getPreventDisconnect().contains(uuid)) {
-                gateway.sendAll(packet);
-                gateway.sendAll(new ServersInfoPacket(ServersLinkApi.getServerList()));
+                gateway.sendToAll(packet);
+                gateway.sendToAll(new ServersInfoPacket(ServersLinkApi.getServerList()));
             }
         } else {
             SubServer connection = SubServer.getInstance();
-            /* Send packet ONLY if the player is not transferred */
-            if (!ServersLinkApi.getPreventDisconnect().contains(uuid)) {
-                connection.send(packet);
-                System.out.println("Sent PlayerDisconnectPacket for player " + player.getName().getString());
-            }
+            connection.send(packet);
         }
     }
 }

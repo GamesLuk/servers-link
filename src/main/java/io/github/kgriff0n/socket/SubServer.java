@@ -7,8 +7,6 @@ import io.github.kgriff0n.packet.info.ServerStatusPacket;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,16 +19,11 @@ public class SubServer extends Thread {
 
     private ExecutorService executor;
 
-    /** List of player UUIDs that can connect */
-    private ArrayList<UUID> waitingPlayers;
-
-    private String ip;
-    private int port;
-
     public static SubServer getInstance() {
         return connection;
     }
 
+    @SuppressWarnings("FieldCanBeLocal")
     private Socket clientSocket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
@@ -39,7 +32,6 @@ public class SubServer extends Thread {
         this.ip = ip;
         this.port = port;
         if (connection == null) {
-            waitingPlayers = new ArrayList<>();
 
             connection = this;
             executor  = Executors.newSingleThreadExecutor();
@@ -64,18 +56,6 @@ public class SubServer extends Thread {
                 }
             });
         }
-    }
-
-    public ArrayList<UUID> getWaitingPlayers() {
-        return this.waitingPlayers;
-    }
-
-    public void addWaitingPlayer(UUID uuid) {
-        this.waitingPlayers.add(uuid);
-    }
-
-    public void removeWaitingPlayer(UUID uuid) {
-        this.waitingPlayers.remove(uuid);
     }
 
     @Override
@@ -148,6 +128,9 @@ public class SubServer extends Thread {
                     break;
                 }
             }
+        } catch (IOException e) {
+            ServersLink.LOGGER.error("Gateway disconnected {}", e.getMessage());
+            SERVER.halt(true);
         }
     }
 

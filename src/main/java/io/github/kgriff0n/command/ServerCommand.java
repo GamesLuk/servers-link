@@ -3,16 +3,24 @@ package io.github.kgriff0n.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.github.kgriff0n.ServersLink;
-import io.github.kgriff0n.packet.play.TeleportationAcceptPacket;
 import io.github.kgriff0n.packet.play.TeleportationRequestPacket;
+import io.github.kgriff0n.packet.play.TeleportationResponsePacket;
 import io.github.kgriff0n.socket.Gateway;
 import io.github.kgriff0n.socket.SubServer;
 import io.github.kgriff0n.util.DummyPlayer;
-import io.github.kgriff0n.util.IPlayerServersLink;
 import io.github.kgriff0n.api.ServersLinkApi;
 import io.github.kgriff0n.server.ServerInfo;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.world.entity.Relative;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -50,10 +58,6 @@ public class ServerCommand {
                                 .then(argument("player", EntityArgument.player())
                                         .requires(Permissions.require("server.join.other", PermissionLevel.GAMEMASTERS))
                                         .executes(context -> join(EntityArgument.getPlayer(context, "player"), StringArgumentType.getString(context, "server")))
-                                        .then(argument("position", Vec3Argument.vec3())
-                                                .requires(Permissions.require("server.join.position", PermissionLevel.GAMEMASTERS))
-                                                .executes(context -> joinPos(EntityArgument.getPlayer(context, "player"), StringArgumentType.getString(context, "server"), Vec3Argument.getVec3(context, "position")))
-                                        )
                                 )
                         )
 
@@ -130,10 +134,6 @@ public class ServerCommand {
         if (player != null) {
             /* Save player state for the current server before transfer */
             String name = ServersLink.getServerInfo().getName();
-            ((IPlayerServersLink) player).servers_link$setServerPos(name, player.position());
-            ((IPlayerServersLink) player).servers_link$setServerRot(name, player.getYRot(), player.getXRot());
-            ((IPlayerServersLink) player).servers_link$setServerDim(name, player.level());
-            ((IPlayerServersLink) player).servers_link$setServerGameMode(name, player.gameMode.getGameModeForPlayer());
 
             if (name.equals(serverName)) {
                 player.sendSystemMessage(Component.literal("You are already connected to this server").withStyle(ChatFormatting.RED));
@@ -144,12 +144,6 @@ public class ServerCommand {
             }
         }
         return Command.SINGLE_SUCCESS;
-    }
-
-    private static int joinPos(ServerPlayer player, String serverName, Vec3 pos) {
-        ((IPlayerServersLink) player).servers_link$setServerPos(serverName, pos);
-        ((IPlayerServersLink) player).servers_link$setServerRot(serverName, player.getYRot(), player.getXRot());
-        return join(player, serverName);
     }
 
     private static int whereis(CommandSourceStack source, ServerPlayer player) {
@@ -169,9 +163,9 @@ public class ServerCommand {
         if (server.equals(ServersLink.getServerInfo().getName())) {
             sender.teleportTo(player.level(), player.getX(), player.getY(), player.getZ(), EnumSet.noneOf(Relative.class), player.getYRot(), player.getXRot(), false);
         } else {
-            TeleportationRequestPacket request = new TeleportationRequestPacket(player.getUUID(), sender.getUUID(), ServersLink.getServerInfo().getName(), server);
+            TeleportationRequestPacket request = new TeleportationRequestPacket(sender.getUUID(), player.getUUID(), ServersLink.getServerInfo().getName(), server);
             if (ServersLink.isGateway) {
-                Gateway.getInstance().sendTo(request, server);
+                Gateway.getInstance().sendTo(server, request);
             } else {
                 SubServer.getInstance().send(request);
             }
@@ -186,9 +180,9 @@ public class ServerCommand {
         if (server.equals(ServersLink.getServerInfo().getName())) {
             player.teleportTo(sender.level(), sender.getX(), sender.getY(), sender.getZ(), EnumSet.noneOf(Relative.class), sender.getYRot(), sender.getXRot(), false);
         } else {
-            TeleportationAcceptPacket accept = new TeleportationAcceptPacket(sender.getX(), sender.getY(), sender.getZ(), player.getUUID(), server, ServersLink.getServerInfo().getName());
+            TeleportationResponsePacket accept = new TeleportationResponsePacket(player.getUUID(), sender.getX(), sender.getY(), sender.getZ(), sender.getYRot(), sender.getXRot(), sender.level().dimension().identifier().toString(), ServersLink.getServerInfo().getName(), server);
             if (ServersLink.isGateway) {
-                Gateway.getInstance().sendTo(accept, server);
+                Gateway.getInstance().sendTo(server, accept);
             } else {
                 SubServer.getInstance().send(accept);
             }

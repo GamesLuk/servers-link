@@ -1,7 +1,6 @@
 package io.github.kgriff0n.mixin;
 
 import com.mojang.brigadier.ParseResults;
-import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.packet.play.CommandPacket;
 import io.github.kgriff0n.api.ServersLinkApi;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,6 +9,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.UUID;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -49,7 +53,7 @@ public class CommandManagerMixin {
                 cmd = command;
                 isRun = false;
             }
-            ServersLinkApi.send(new CommandPacket(uuid, cmd, isRun), ServersLink.getServerInfo().getName());
+            ServersLinkApi.send(new CommandPacket(uuid, command), ServersLink.getServerInfo().getName());
         }
     }
 

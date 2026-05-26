@@ -1,7 +1,6 @@
 package io.github.kgriff0n.mixin;
 
 import com.mojang.serialization.JsonOps;
-import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.api.FakePlayerApi;
 import io.github.kgriff0n.packet.play.SystemChatPacket;
 import io.github.kgriff0n.packet.server.PlayerDataPacket;
@@ -22,6 +21,18 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
+import net.minecraft.network.Connection;
+import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.chat.OutgoingChatMessage;
+import net.minecraft.network.chat.PlayerChatMessage;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.players.PlayerList;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
@@ -64,7 +75,7 @@ public abstract class PlayerManagerMixin {
     @Inject(at = @At("HEAD"), method = "broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V")
     private void sendSystemPacket(Component message, boolean overlay, CallbackInfo ci) {
         SystemChatPacket packet = new SystemChatPacket(ComponentSerialization.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, SERVER.registryAccess()), message).getOrThrow().toString());
-        ServersLinkApi.send(packet, ServersLink.getServerInfo().getName());
+        ServersLinkApi.send(packet);
     }
 
     @Inject(at = @At("HEAD"), method = "placeNewPlayer")
@@ -72,50 +83,10 @@ public abstract class PlayerManagerMixin {
         this.player = player;
     }
 
-    @Inject(at = @At("TAIL"), method = "placeNewPlayer")
-    private void applyStoredJoinState(Connection connection, ServerPlayer player, CommonListenerCookie clientData, CallbackInfo ci) {
-
-        if (servers_link$isNonRealPlayer(player)) {
-            return;
-        }
-
-        IPlayerServersLink data = (IPlayerServersLink) player;
-        String serverName = ServersLink.getServerInfo().getName();
-
-        Vec3 storedPos = data.servers_link$getServerPos(serverName);
-        ServerLevel storedDim = data.servers_link$getServerDim(serverName);
-        List<Float> storedRot = data.servers_link$getServerRot(serverName);
-        GameType storedGameMode = data.servers_link$getServerGameMode(serverName);
-
-        ServerLevel defaultWorld = player.level().getServer().overworld();
-        ServerLevel targetDim = storedDim != null
-                ? storedDim
-                : (defaultWorld != null ? defaultWorld : (ServerLevel) player.level());
-        Vec3 targetPos = storedPos != null
-                ? storedPos
-                : new Vec3(
-                        targetDim.getRespawnData().pos().getX() + 0.5,
-                        targetDim.getRespawnData().pos().getY(),
-                        targetDim.getRespawnData().pos().getZ() + 0.5
-                );
-        float targetYaw = storedRot != null && storedRot.size() >= 2 ? storedRot.get(0) : player.getYRot();
-        float targetPitch = storedRot != null && storedRot.size() >= 2 ? storedRot.get(1) : player.getXRot();
-
-        player.teleportTo(targetDim, targetPos.x(), targetPos.y(), targetPos.z(), EnumSet.noneOf(Relative.class), targetYaw, targetPitch, false);
-
-        GameType targetGameMode = storedGameMode != null ? storedGameMode : player.level().getServer().getDefaultGameType();
-        if (targetGameMode != null) {
-            player.setGameMode(targetGameMode);
-        }
-    }
-
     @Inject(at = @At("TAIL"), method = "save")
     private void sendPlayerData(ServerPlayer player, CallbackInfo ci) {
-        if (servers_link$isNonRealPlayer(player)) {
-            return;
-        }
         try {
-            ServersLinkApi.send(new PlayerDataPacket(player.getUUID()), ServersLink.getServerInfo().getName());
+            ServersLinkApi.send(new PlayerDataPacket(player.getUUID()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

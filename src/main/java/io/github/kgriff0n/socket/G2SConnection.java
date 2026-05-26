@@ -3,6 +3,7 @@ package io.github.kgriff0n.socket;
 import com.mojang.authlib.GameProfile;
 import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.packet.Packet;
+import io.github.kgriff0n.packet.PacketHeader;
 import io.github.kgriff0n.packet.info.NewPlayerPacket;
 import io.github.kgriff0n.packet.info.NewServerPacket;
 import io.github.kgriff0n.server.Group;
@@ -30,6 +31,7 @@ public class G2SConnection extends Thread {
     private final ExecutorService executor;
 
     private final Socket socket;
+    @SuppressWarnings("FieldCanBeLocal")
     private ObjectInputStream in;
     private ObjectOutputStream out;
 
@@ -38,7 +40,14 @@ public class G2SConnection extends Thread {
         this.executor  = Executors.newSingleThreadExecutor();
     }
 
+    public boolean isConnected() {
+        return socket != null;
+    }
+
     public synchronized void send(Packet packet) {
+        if (socket == null) {
+            return;
+        }
         if (executor.isShutdown()) {
             ServersLink.LOGGER.warn("Can't send {}", packet.getClass().getName());
         } else {
@@ -108,8 +117,20 @@ public class G2SConnection extends Thread {
                         }
                     }
                 }
-                if (server != null) {
-                    SERVER.execute(() -> packet.onGatewayReceive(server.getName()));
+
+                /* Packet handling */
+                packet.gatewayLogic();
+                if (packet instanceof PacketHeader pkt) {
+                    if (ServersLinkApi.getServerName().equals(pkt.getRecipient())) {
+                        SERVER.execute(packet::onReceive); //TODO remove SERVER.execute?
+                    } else {
+                        Gateway.getInstance().sendTo(pkt.getRecipient(), packet);
+                    }
+                } else {
+                    Gateway.getInstance().sendToAllFrom(server.getName(), packet);
+                    if (packet.shouldReceive(Gateway.getInstance().getSettings(ServersLink.getServerInfo().getGroupId(), ServersLinkApi.getServer(server.getName()).getGroupId()))) {
+                        SERVER.execute(packet::onReceive);
+                    }
                 }
             }
             socket.close();
@@ -131,6 +152,8 @@ public class G2SConnection extends Thread {
             } else if (e.getMessage() != null) {
                 ServersLink.LOGGER.error("Error {} in unidentified connection", e.getMessage());
             }
+            ServersLinkApi.disconnectServer(this.server);
+            ServersLinkApi.broadcastToOp(Component.literal("Sub-server " + server.getName() + " has disconnected").withStyle(ChatFormatting.RED));
             this.interrupt();
         } catch (ClassNotFoundException e) {
             ServersLink.LOGGER.error("Receive invalid data: {}", e.getMessage());

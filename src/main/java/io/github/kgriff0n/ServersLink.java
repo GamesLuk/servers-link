@@ -1,6 +1,7 @@
 package io.github.kgriff0n;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.kgriff0n.api.ServersLinkApi;
 import io.github.kgriff0n.command.ServerCommand;
@@ -105,16 +106,22 @@ public class ServersLink implements ModInitializer {
             isGateway = jsonObject.get("gateway").getAsBoolean();
 			gatewayIp = jsonObject.get("gateway-ip").getAsString();
 			gatewayPort = jsonObject.get("gateway-port").getAsInt();
-            gatewayGameIp = jsonObject.get("gateway-game-ip").getAsString();
-            gatewayGamePort = jsonObject.get("gateway-game-port").getAsInt();
+
 			serverInfo = new ServerInfo(
 					jsonObject.get("group").getAsString(),
 					jsonObject.get("server-name").getAsString(),
 					jsonObject.get("server-ip").getAsString(),
 					jsonObject.get("server-port").getAsInt()
 			);
-            commandName = jsonObject.get("command-name").getAsString();
-            commandName = commandName == null ? "server" : commandName;
+
+            // Optional Values
+            JsonElement gatewayGameIpElement = jsonObject.get("gateway-game-ip");
+            gatewayGameIp = gatewayGameIpElement != null ? gatewayGameIpElement.getAsString() : null;
+            JsonElement gatewayGamePortElement = jsonObject.get("gateway-game-port");
+            gatewayGamePort = gatewayGamePortElement != null ? gatewayGamePortElement.getAsInt() : 25565;
+            JsonElement commandNameElement = jsonObject.get("command-name");
+            commandName = commandNameElement != null ? commandNameElement.getAsString() : "server";
+
 		} catch (IOException e) {
 			CONFIG_ERROR = true;
 			ServersLink.LOGGER.error("Unable to read info.json");

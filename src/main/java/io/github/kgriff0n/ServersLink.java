@@ -59,6 +59,7 @@ public class ServersLink implements ModInitializer {
 
 		ServerCommand.register();
 
+        ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.register(new PlayerJoin());
 		ServerLifecycleEvents.SERVER_STARTED.register(new ServerStart());
 		ServerLifecycleEvents.SERVER_STOPPING.register(new ServerStopping());
 		ServerLifecycleEvents.SERVER_STOPPED.register(new ServerStopped());

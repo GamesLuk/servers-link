@@ -11,15 +11,20 @@ import io.github.kgriff0n.socket.SubServer;
 import io.github.kgriff0n.server.ServerInfo;
 import io.github.kgriff0n.api.ServersLinkApi;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.ClientboundTransferPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.jetbrains.annotations.NotNull;
 
-public class PlayerJoin implements ServerPlayConnectionEvents.Join {
+import java.util.UUID;
+
+public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerConfigurationConnectionEvents.Configure {
 
     @Override
     public void onPlayReady(ServerGamePacketListenerImpl serverPlayNetworkHandler, @NotNull PacketSender packetSender, @NotNull MinecraftServer minecraftServer) {
@@ -63,21 +68,35 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join {
             }
         } else {
             SubServer connection = SubServer.getInstance();
-            if (!ServersLinkApi.getWaitingPlayers().contains(newPlayer.getUUID())) {
-                serverPlayNetworkHandler.disconnect(Component.translatable("multiplayer.status.cannot_connect").withStyle(ChatFormatting.RED));
-                /* Used to prevent the logout message in ServerPlayNetworkHandlerMixin#preventDisconnectMessage */
-                ServersLinkApi.getPreventConnect().add(serverPlayNetworkHandler.player.getUUID());
-                ServersLinkApi.getPreventDisconnect().add(serverPlayNetworkHandler.player.getUUID());
-            } else {
-                /* The player logs in and is removed from the list of waiting players */
-                ServersLinkApi.removeWaitingPlayer(newPlayer.getUUID());
-                /* Delete the fake player */
-                ServersLinkApi.getDummyPlayers().removeIf(player -> player.getName().equals(newPlayer.getName()));
-                /* Send player information to other servers */
-                connection.send(dummyPlayer);
-                connection.send(new PlayerAcknowledgementPacket(ServersLink.getServerInfo().getName(), newPlayer.getGameProfile()));
-            }
+            /* The player logs in and is removed from the list of waiting players */
+            ServersLinkApi.removeWaitingPlayer(newPlayer.getUUID());
+            /* Delete the fake player */
+            ServersLinkApi.getDummyPlayers().removeIf(player -> player.getName().equals(newPlayer.getName()));
+            /* Send player information to other servers */
+            connection.send(dummyPlayer);
+            connection.send(new PlayerAcknowledgementPacket(ServersLink.getServerInfo().getName(), newPlayer.getGameProfile()));
         }
 
+    }
+
+    @Override
+    public void onSendConfiguration(ServerConfigurationPacketListenerImpl handler, MinecraftServer minecraftServer) {
+        // Handle Players not from the Gateway
+        if(!ServersLink.isGateway) {
+            UUID uuid = handler.getOwner().id();
+            if (!ServersLinkApi.getWaitingPlayers().contains(uuid)) {
+                if(ServersLink.isGatewayAvailable() && ServersLink.getGatewayGameIp() != null){
+                    // If Gateway is connected (reachable) then transfer player to gateway
+                    handler.send(new ClientboundTransferPacket(ServersLink.getGatewayGameIp(), ServersLink.getGatewayGamePort()));
+                } else {
+                    // Else just disconnect him
+                    handler.disconnect(Component.translatable("multiplayer.status.cannot_connect").withStyle(ChatFormatting.RED));
+                }
+
+                /* Used to prevent the logout message in ServerPlayNetworkHandlerMixin#preventDisconnectMessage */
+                ServersLinkApi.getPreventConnect().add(uuid);
+                ServersLinkApi.getPreventDisconnect().add(uuid);
+            }
+        }
     }
 }

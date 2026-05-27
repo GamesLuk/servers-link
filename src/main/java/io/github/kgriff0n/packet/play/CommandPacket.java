@@ -1,5 +1,6 @@
 package io.github.kgriff0n.packet.play;
 
+import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.api.ServersLinkApi;
 import io.github.kgriff0n.server.Settings;
@@ -41,8 +42,8 @@ public class CommandPacket implements Packet {
     @Override
     public void onReceive() {
         String cmd;
-        if (command.startsWith(FakePlayerApi.getCommandName() + " run ")) {
-            cmd = command.substring(FakePlayerApi.getCommandName().length() + 5);
+        if (command.startsWith(ServersLink.getCommandName() + " run ")) {
+            cmd = command.substring(ServersLink.getCommandName().length() + 5);
         } else {
             cmd = command;
         }

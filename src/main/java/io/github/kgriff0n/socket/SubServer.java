@@ -23,6 +23,9 @@ public class SubServer extends Thread {
         return connection;
     }
 
+    private String ip;
+    private int port;
+
     @SuppressWarnings("FieldCanBeLocal")
     private Socket clientSocket;
     private ObjectInputStream in;
@@ -128,9 +131,6 @@ public class SubServer extends Thread {
                     break;
                 }
             }
-        } catch (IOException e) {
-            ServersLink.LOGGER.error("Gateway disconnected {}", e.getMessage());
-            SERVER.halt(true);
         }
     }
 

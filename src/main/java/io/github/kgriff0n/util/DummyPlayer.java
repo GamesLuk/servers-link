@@ -1,7 +1,6 @@
 package io.github.kgriff0n.util;
 
 import com.mojang.authlib.GameProfile;
-import net.fabricmc.fabric.impl.event.interaction.FakePlayerNetworkHandler;
 import net.fabricmc.fabric.impl.event.interaction.FakePlayerPacketListener;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;

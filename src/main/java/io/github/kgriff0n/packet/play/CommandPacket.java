@@ -55,28 +55,26 @@ public class CommandPacket implements Packet {
         }
 
         if (player != null) {
+            player.level();
             source = new CommandSourceStack(
                     player.commandSource(),
                     player.position(),
                     player.getRotationVector(),
-                    player.level() instanceof ServerLevel ? player.level() : null,
+                    player.level(),
                     SERVER.getProfilePermissions(new NameAndId(player.getUUID(), player.getName().getString())),
-                    "do-not-send-back",
-                    player.getDisplayName(),
                     player.level().getServer(),
                     player
             );
         } else {
+            SERVER.overworld();
             source = new CommandSourceStack(
                     SERVER,
-                    SERVER.overworld() == null ? Vec3.ZERO : Vec3.atLowerCornerOf(SERVER.overworld().getRespawnData().pos()),
+                    Vec3.atLowerCornerOf(SERVER.overworld().getRespawnData().pos()),
                     Vec2.ZERO,
                     SERVER.overworld(),
                     PermissionSet.ALL_PERMISSIONS,
-                    "do-not-send-back",
                     Component.literal("Server"),
-                    SERVER,
-                    null
+                    SERVER
             );
         }
         SERVER.getCommands().performPrefixedCommand(source, cmd);

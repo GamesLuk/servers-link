@@ -27,7 +27,7 @@ public class PlayerDisconnect implements ServerPlayConnectionEvents.Disconnect {
             /* Delete player from list and send packet ONLY if the player is not transferred */
             if (!ServersLinkApi.getPreventDisconnect().contains(uuid)) {
                 gateway.sendToAll(packet);
-                gateway.sendToAll(new ServersInfoPacket(ServersLinkApi.getImmutableServerList()));
+                gateway.sendToAll(new ServersInfoPacket(ServersLinkApi.getServerList()));
             }
         } else {
             SubServer connection = SubServer.getInstance();

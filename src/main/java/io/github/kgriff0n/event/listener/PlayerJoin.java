@@ -10,18 +10,21 @@ import io.github.kgriff0n.socket.Gateway;
 import io.github.kgriff0n.socket.SubServer;
 import io.github.kgriff0n.server.ServerInfo;
 import io.github.kgriff0n.api.ServersLinkApi;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundTransferPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public class PlayerJoin implements ServerConfigurationConnectionEvents.Configure, ServerPlayerEvents.Join {
+public class PlayerJoin implements ServerConfigurationConnectionEvents.Configure, ServerPlayConnectionEvents.Join {
 
     @Override
     public void onSendConfiguration(ServerConfigurationPacketListenerImpl handler, MinecraftServer minecraftServer) {
@@ -45,58 +48,58 @@ public class PlayerJoin implements ServerConfigurationConnectionEvents.Configure
     }
 
     @Override
-    public void onJoin(ServerPlayer serverPlayer) {
+    public void onPlayReady(ServerGamePacketListenerImpl listener, @NotNull PacketSender sender, @NotNull MinecraftServer server) {
+
+        ServerPlayer newPlayer = listener.player;
+
         /* Dummy player packet */
-        NewPlayerPacket dummyPlayer = new NewPlayerPacket(serverPlayer.getGameProfile());
+        NewPlayerPacket dummyPlayer = new NewPlayerPacket(newPlayer.getGameProfile());
 
         /* Players can only connect from the hub */
         if (ServersLink.isGateway) {
             Gateway gateway = Gateway.getInstance();
-            if (gateway.isConnectedPlayer(serverPlayer.getUUID()) && !ServersLinkApi.getPreventConnect().contains(serverPlayer.getUUID())) {
-                ServersLinkApi.transferPlayer(serverPlayer, ServersLink.getServerInfo().getName(), ServersLinkApi.whereIs(serverPlayer.getUUID()));
-                ServersLinkApi.getPreventConnect().add(serverPlayer.getUUID());
-                ServersLinkApi.getPreventDisconnect().add(serverPlayer.getUUID());
+            if (gateway.isConnectedPlayer(newPlayer.getUUID()) && !ServersLinkApi.getPreventConnect().contains(newPlayer.getUUID())) {
+                ServersLinkApi.transferPlayer(newPlayer, ServersLink.getServerInfo().getName(), ServersLinkApi.whereIs(newPlayer.getUUID()));
+                ServersLinkApi.getPreventConnect().add(newPlayer.getUUID());
+                ServersLinkApi.getPreventDisconnect().add(newPlayer.getUUID());
             } else {
-                String lastServer = PlayersInformation.getLastServer(serverPlayer.getUUID());
+                String lastServer = PlayersInformation.getLastServer(newPlayer.getUUID());
                 ServerInfo lastServerInfo = ServersLinkApi.getServer(lastServer);
 
                 if (lastServer == null) {
-                    ServersLinkEvents.FIRST_JOIN.invoker().onFirstJoin(serverPlayer);
+                    ServersLinkEvents.FIRST_JOIN.invoker().onFirstJoin(newPlayer);
                 }
 
                 if (lastServer == null || lastServer.equals(ServersLink.getServerInfo().getName())
                         || lastServerInfo == null || lastServerInfo.isDown() || !gateway.shouldReconnectToLastServer()) {
-                    ServersLinkApi.getServer(ServersLink.getServerInfo().getName()).addPlayer(serverPlayer.getGameProfile());
+                    ServersLinkApi.getServer(ServersLink.getServerInfo().getName()).addPlayer(newPlayer.getGameProfile());
                     /* Delete the fake player */
-                    ServersLinkApi.getDummyPlayers().removeIf(dummy -> dummy.getName().equals(serverPlayer.getName()));
+                    ServersLinkApi.getDummyPlayers().removeIf(player -> player.getName().equals(newPlayer.getName()));
 
                     /* Send player information to other servers */
                     gateway.sendToAllFrom(ServersLink.getServerInfo().getName(), dummyPlayer);
-                    gateway.sendToAll(new ServersInfoPacket(ServersLinkApi.getImmutableServerList()));
+                    gateway.sendToAll(new ServersInfoPacket(ServersLinkApi.getServerList()));
 
                     if (gateway.shouldReconnectToLastServer() && lastServer != null && !lastServer.isEmpty() && (lastServerInfo == null || lastServerInfo.isDown())) {
-                        serverPlayer.sendSystemMessage(Component.literal("An unexpected error occurred while attempting to reconnect you to your previous server").withStyle(ChatFormatting.RED));
+                        newPlayer.sendSystemMessage(Component.literal("An unexpected error occurred while attempting to reconnect you to your previous server").withStyle(ChatFormatting.RED));
                     }
                 } else {
-                    ServersLinkApi.transferPlayer(serverPlayer, ServersLink.getServerInfo().getName(), lastServer);
+                    ServersLinkApi.transferPlayer(newPlayer, ServersLink.getServerInfo().getName(), lastServer);
                 }
             }
         } else {
             SubServer connection = SubServer.getInstance();
-            if (!ServersLinkApi.getWaitingPlayers().contains(serverPlayer.getUUID())) {
-                serverPlayer.connection.disconnect(Component.translatable("multiplayer.status.cannot_connect").withStyle(ChatFormatting.RED));
-                /* Used to prevent the logout message in ServerPlayNetworkHandlerMixin#preventDisconnectMessage */
-                ServersLinkApi.getPreventConnect().add(serverPlayer.connection.player.getUUID());
-                ServersLinkApi.getPreventDisconnect().add(serverPlayer.connection.player.getUUID());
-            } else {
+            if (!ServersLinkApi.getWaitingPlayers().contains(newPlayer.getUUID())) {
+                newPlayer.connection.disconnect(Component.translatable("multiplayer.status.cannot_connect").withStyle(ChatFormatting.RED));
                 /* The player logs in and is removed from the list of waiting players */
-                ServersLinkApi.removeWaitingPlayer(serverPlayer.getUUID());
+                ServersLinkApi.removeWaitingPlayer(newPlayer.getUUID());
                 /* Delete the fake player */
-                ServersLinkApi.getDummyPlayers().removeIf(dummy -> dummy.getName().equals(serverPlayer.getName()));
+                ServersLinkApi.getDummyPlayers().removeIf(player -> player.getName().equals(newPlayer.getName()));
                 /* Send player information to other servers */
                 connection.send(dummyPlayer);
-                connection.send(new PlayerAcknowledgementPacket(ServersLink.getServerInfo().getName(), serverPlayer.getGameProfile()));
+                connection.send(new PlayerAcknowledgementPacket(ServersLink.getServerInfo().getName(), newPlayer.getGameProfile()));
             }
+
         }
     }
 }

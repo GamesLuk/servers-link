@@ -80,8 +80,7 @@ public class G2SConnection extends Thread {
 
             while (IS_RUNNING) {
                 Packet packet = (Packet) in.readObject();
-                if (Gateway.getInstance().isDebugEnabled())
-                    ServersLink.LOGGER.info("\u001B[95mPacket received {}", packet.getClass());
+                if (Gateway.getInstance().isDebugEnabled()) ServersLink.LOGGER.info("\u001B[95mPacket received {}", packet.getClass());
                 if (packet instanceof NewServerPacket pkt) {
                     this.server = pkt.getServer();
                     this.setName(String.format("%s thread", server.getName()));

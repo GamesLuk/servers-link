@@ -9,7 +9,8 @@
     "PlayerSaveHandlerMixin",
     "ServerPlayerEntityMixin",
     "ServerPlayNetworkHandlerMixin",
-    "accessor.PlayerManagerAccessor"
+    "accessor.PlayerManagerAccessor",
+    "PlayerListMixin"
   ],
   "injectors": {
     "defaultRequire": 1

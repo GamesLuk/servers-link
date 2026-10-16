@@ -5,14 +5,19 @@ import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.api.ServersLinkApi;
 import io.github.kgriff0n.server.Settings;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.server.players.NameAndId;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.UUID;
 
 import static io.github.kgriff0n.ServersLink.SERVER;
@@ -55,7 +60,7 @@ public class CommandPacket implements Packet {
         }
 
         if (player != null) {
-            source = new CommandSourceStack(
+            source = new CustomCommandSourceStack(
                     player.commandSource(),
                     player.position(),
                     player.getRotationVector(),
@@ -67,7 +72,7 @@ public class CommandPacket implements Packet {
                     player
             );
         } else {
-            source = new CommandSourceStack(
+            source = new CustomCommandSourceStack(
                     SERVER,
                     SERVER.overworld() == null ? Vec3.ZERO : Vec3.atLowerCornerOf(SERVER.overworld().getRespawnData().pos()),
                     Vec2.ZERO,
@@ -80,5 +85,27 @@ public class CommandPacket implements Packet {
             );
         }
         SERVER.getCommands().performPrefixedCommand(source, cmd);
+    }
+
+    private static class CustomCommandSourceStack extends CommandSourceStack {
+
+        private final String textName;
+        private final Component displayName;
+
+        public CustomCommandSourceStack(final CommandSource source, final Vec3 position, final Vec2 rotation, final ServerLevel level, final PermissionSet permissions, String textName, Component displayName, final MinecraftServer server, final Entity entity) {
+            super(source, position, rotation, level, permissions, server, entity);
+            this.textName = textName;
+            this.displayName = displayName;
+        }
+
+        @Override
+        public @NotNull String getTextName(){
+            return textName;
+        }
+
+        @Override
+        public @NotNull Component getDisplayName(){
+            return displayName;
+        }
     }
 }

@@ -33,13 +33,21 @@ public class NewPlayerPacket implements Packet {
 
     @Override
     public void onReceive() {
-        boolean created = FakePlayerApi.spawnFake(SERVER, name);
+        if (FakePlayerApi.isAvailable()) {
+            boolean created = FakePlayerApi.spawnFake(SERVER, name);
 
-        if(!created) {
-            PropertyMap properties = new PropertyMap.Serializer().deserialize(JsonParser.parseString(this.properties), null, null);
-            GameProfile profile = new GameProfile(this.uuid, this.name, properties);
+            if (!created) {
+                // Already present or currently spawning.
+                // Do not create a duplicate DummyPlayer.
+            }
 
-            ServersLinkApi.addDummyPlayer(profile);
+            return;
         }
+
+        PropertyMap properties = new PropertyMap.Serializer()
+                .deserialize(JsonParser.parseString(this.properties), null, null);
+
+        GameProfile profile = new GameProfile(this.uuid, this.name, properties);
+        ServersLinkApi.addDummyPlayer(profile);
     }
 }

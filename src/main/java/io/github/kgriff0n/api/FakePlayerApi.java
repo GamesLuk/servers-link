@@ -77,4 +77,8 @@ public class FakePlayerApi {
             return false;
         }
     }
+
+    public static boolean isAvailable() {
+        return IS_LOADED;
+    }
 }

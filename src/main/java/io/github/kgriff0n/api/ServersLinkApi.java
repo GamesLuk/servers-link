@@ -178,6 +178,7 @@ public class ServersLinkApi {
      * @param packet the packet to send
      */
     public static void send(Packet packet) {
+        ServersLink.LOGGER.info("send() reached");
         if (ServersLink.isGateway) {
             packet.gatewayLogic();
             if (packet instanceof PacketHeader pkt) {
@@ -215,18 +216,28 @@ public class ServersLinkApi {
         for (DummyPlayer player : dummyPlayers) {
             if (player.getUUID().equals(profile.id())) {
                 alreadyPresent = true;
+                break;
             }
         }
 
         if (!alreadyPresent) {
-            dummyPlayers.add(new DummyPlayer(profile));
+            DummyPlayer dummy = new DummyPlayer(profile);
+            dummyPlayers.add(dummy);
 
-            /* Update player list for all players */
-            List<ServerPlayer> allPlayers = new ArrayList<>();
-            allPlayers.addAll(playerList);
-            allPlayers.addAll(dummyPlayers);
+            // Only initialize the newly added player, not the entire list.
             for (ServerPlayer player : playerList) {
-                player.connection.send(ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(allPlayers));
+                player.connection.send(
+                        ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(
+                                List.of(dummy)
+                    )
+                );
+
+                player.connection.send(
+                        new ClientboundPlayerInfoUpdatePacket(
+                                ClientboundPlayerInfoUpdatePacket.Action.UPDATE_HAT,
+                                dummy
+                    )
+                );
             }
         }
     }
@@ -266,6 +277,7 @@ public class ServersLinkApi {
      * @param to the name of the server to which the player will be transferred
      */
     public static void transferPlayer(ServerPlayer player, String from, String to) {
+        ServersLink.LOGGER.info("transferPlayer reached");
         PlayerTransferRequestPacket transferPacket = new PlayerTransferRequestPacket(player.getUUID(), from, to);
         ServersLinkApi.send(transferPacket);
     }

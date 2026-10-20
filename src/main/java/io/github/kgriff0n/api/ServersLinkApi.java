@@ -137,7 +137,7 @@ public class ServersLinkApi {
         SERVER.execute(() -> {
             Gateway gateway = Gateway.getInstance();
             server.getPlayersList().forEach((uuid, name) -> {
-                gateway.sendToAll(new PlayerDisconnectPacket(uuid));
+                gateway.sendToAll(new PlayerDisconnectPacket(uuid, name));
                 dummyPlayers.removeIf(player -> player.getUUID().equals(uuid));
             });
             gateway.sendToAll(new ServersInfoPacket(ServersLinkApi.getServerList()));

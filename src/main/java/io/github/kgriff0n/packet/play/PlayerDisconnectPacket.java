@@ -19,9 +19,9 @@ public class PlayerDisconnectPacket implements Packet {
     private final UUID uuid;
     private final String name;
 
-    public PlayerDisconnectPacket(UUID uuid) {
+    public PlayerDisconnectPacket(UUID uuid, String name) {
         this.uuid = uuid;
-        this.name = Objects.requireNonNull(SERVER.getPlayerList().getPlayer(uuid)).getName().getString();
+        this.name = name;
     }
 
     @Override

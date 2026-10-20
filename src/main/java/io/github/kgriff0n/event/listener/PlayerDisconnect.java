@@ -10,6 +10,8 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+
+import java.util.Objects;
 import java.util.UUID;
 
 public class PlayerDisconnect implements ServerPlayConnectionEvents.Disconnect {
@@ -17,10 +19,11 @@ public class PlayerDisconnect implements ServerPlayConnectionEvents.Disconnect {
     public void onPlayDisconnect(ServerGamePacketListenerImpl serverPlayNetworkHandler, MinecraftServer minecraftServer) {
         ServerPlayer player = serverPlayNetworkHandler.player;
         UUID uuid = player.getUUID();
-        PlayerDisconnectPacket packet = new PlayerDisconnectPacket(uuid);
+        String name = player.getName().getString();
+        PlayerDisconnectPacket packet = new PlayerDisconnectPacket(uuid, name);
 
         // Remove player from list
-        ServersLinkApi.getServer(ServersLink.getServerInfo().getName()).removePlayer(uuid);
+        Objects.requireNonNull(ServersLinkApi.getServer(ServersLink.getServerInfo().getName())).removePlayer(uuid);
 
         if (ServersLink.isGateway) {
             Gateway gateway = Gateway.getInstance();

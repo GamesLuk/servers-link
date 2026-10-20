@@ -18,7 +18,7 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
+import java.util.*;
 
 import static io.github.kgriff0n.ServersLink.SERVER;
 
@@ -27,6 +27,15 @@ public class CommandPacket implements Packet {
     private final UUID uuid;
     private final String command;
     private final boolean isRun;
+
+    private final List<String> allowedCommands = Arrays.asList(
+            "op",
+            "deop",
+            "kick",
+            "ban",
+            "pardon",
+            "unban"
+    );
 
     public CommandPacket(UUID uuid, String command, boolean isRun) {
         this.uuid = uuid;
@@ -39,7 +48,7 @@ public class CommandPacket implements Packet {
         return isRun
                 || settings.isWhitelistSynced() && command.startsWith("whitelist")
                 || settings.isRolesSynced() &&
-                    (command.startsWith("op") || command.startsWith("deop")
+                (allowedCommands.contains(command.split(" ")[0])
                     || (FabricLoader.getInstance().isModLoaded("player-roles")
                         && command.startsWith("role")));
     }

@@ -115,11 +115,6 @@ public class SubServer extends Thread {
                     out = null;
                     in = null;
 
-                    try {
-                        Thread.sleep(60000); // Wait 1 min
-                    } catch (InterruptedException ex) {
-                        break;
-                    }
                 } catch (ClassNotFoundException e) {
                     ServersLink.LOGGER.error("Receive invalid data");
                 }

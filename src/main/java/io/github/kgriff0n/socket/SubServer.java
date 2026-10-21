@@ -119,7 +119,12 @@ public class SubServer extends Thread {
                     ServersLink.LOGGER.error("Receive invalid data");
                 }
             } catch (Exception e) {
-                ServersLink.LOGGER.error("Unexpected error in SubServer loop", e);
+                ServersLink.LOGGER.error("Unexpected error in SubServer loop, waiting 60 seconds", e);
+                try {
+                    Thread.sleep(60000);
+                } catch (InterruptedException ex) {
+                    break;
+                }
             }
         }
     }

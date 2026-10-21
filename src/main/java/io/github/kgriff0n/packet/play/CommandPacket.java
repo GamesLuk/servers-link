@@ -46,11 +46,12 @@ public class CommandPacket implements Packet {
     @Override
     public boolean shouldReceive(Settings settings) {
         return isRun
-                || settings.isWhitelistSynced() && command.startsWith("whitelist")
-                || settings.isRolesSynced() &&
-                (allowedCommands.contains(command.split(" ")[0])
-                    || (FabricLoader.getInstance().isModLoaded("player-roles")
-                        && command.startsWith("role")));
+                || (settings.isWhitelistSynced()
+                    && command.startsWith("whitelist"))
+                || (settings.isRolesSynced()
+                    && allowedCommands.contains(command.split(" ")[0]))
+                || (FabricLoader.getInstance().isModLoaded("player-roles")
+                    && command.startsWith("role"));
     }
 
     @Override

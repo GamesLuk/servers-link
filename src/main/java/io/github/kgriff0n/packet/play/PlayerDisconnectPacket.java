@@ -32,7 +32,6 @@ public class PlayerDisconnectPacket implements Packet {
     @Override
     public void onReceive() {
         boolean removed = FakePlayerApi.deleteFake(SERVER, name);
-        System.out.println("PlayerDisconnectPacket: removed fake player: " + removed);
 
         if(!removed) {
             List<ServerPlayer> playerList = SERVER.getPlayerList().getPlayers();

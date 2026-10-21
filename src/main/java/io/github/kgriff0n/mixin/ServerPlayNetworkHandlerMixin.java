@@ -33,13 +33,4 @@ public abstract class ServerPlayNetworkHandlerMixin {
         PlayerChatPacket packet = new PlayerChatPacket(ComponentSerialization.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, SERVER.registryAccess()), formattedMessage).getOrThrow().toString(), this.getPlayer().getName().getString());
         ServersLinkApi.send(packet);
     }
-
-    @Redirect(method = "removePlayerFromWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V"))
-    private void preventDisconnectMessage(PlayerList instance, Component message, boolean overlay) {
-        if (ServersLinkApi.getPreventDisconnect().contains(player.getUUID())) {
-            ServersLinkApi.getPreventDisconnect().remove(player.getUUID());
-        } else {
-            getPlayer().level().getServer().getPlayerList().broadcastSystemMessage(message, overlay);
-        }
-    }
 }

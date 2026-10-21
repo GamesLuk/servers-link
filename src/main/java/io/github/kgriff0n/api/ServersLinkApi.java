@@ -178,12 +178,11 @@ public class ServersLinkApi {
      * @param packet the packet to send
      */
     public static void send(Packet packet) {
-        ServersLink.LOGGER.info("send() reached");
         if (ServersLink.isGateway) {
             packet.gatewayLogic();
             if (packet instanceof PacketHeader pkt) {
                 Gateway.getInstance().sendTo(pkt.getRecipient(), packet);
-            }
+            } else Gateway.getInstance().sendToAll(packet);
         } else {
             SubServer.getInstance().send(packet);
         }

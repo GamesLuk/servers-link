@@ -40,8 +40,6 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerConfig
             Gateway gateway = Gateway.getInstance();
             if (gateway.isConnectedPlayer(newPlayer.getUUID()) && !ServersLinkApi.getPreventConnect().contains(newPlayer.getUUID())) {
                 ServersLinkApi.transferPlayer(newPlayer, ServersLink.getServerInfo().getName(), ServersLinkApi.whereIs(newPlayer.getUUID()));
-                ServersLinkApi.getPreventConnect().add(newPlayer.getUUID());
-                ServersLinkApi.getPreventDisconnect().add(newPlayer.getUUID());
             } else {
                 String lastServer = PlayersInformation.getLastServer(newPlayer.getUUID());
                 ServerInfo lastServerInfo = ServersLinkApi.getServer(lastServer);
@@ -94,7 +92,7 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerConfig
                     handler.disconnect(Component.translatable("multiplayer.status.cannot_connect").withStyle(ChatFormatting.RED));
                 }
 
-                /* Used to prevent the logout message in ServerPlayNetworkHandlerMixin#preventDisconnectMessage */
+                /* Used to prevent the logout message */
                 ServersLinkApi.getPreventConnect().add(uuid);
                 ServersLinkApi.getPreventDisconnect().add(uuid);
             }

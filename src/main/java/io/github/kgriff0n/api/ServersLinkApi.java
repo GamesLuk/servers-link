@@ -170,7 +170,7 @@ public class ServersLinkApi {
                 return serverInfo.getName();
             }
         }
-        return null;
+        return "";
     }
 
     /**

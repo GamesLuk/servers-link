@@ -3,6 +3,7 @@ package io.github.kgriff0n;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.github.kgriff0n.api.PlaceholderIntegration;
 import io.github.kgriff0n.api.ServersLinkApi;
 import io.github.kgriff0n.command.ServerCommand;
 import io.github.kgriff0n.event.listener.*;
@@ -66,6 +67,8 @@ public class ServersLink implements ModInitializer {
 		ServerPlayConnectionEvents.JOIN.register(new PlayerJoin());
 		ServerPlayConnectionEvents.DISCONNECT.register(new PlayerDisconnect());
 		ServerTickEvents.START_SERVER_TICK.register(new ServerTick());
+
+		if (FabricLoader.getInstance().isModLoaded("placeholder-api")) PlaceholderIntegration.register();
     }
 
 	public static ServerInfo getServerInfo() {

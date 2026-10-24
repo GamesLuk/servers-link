@@ -21,14 +21,32 @@ public class PlaceholderIntegration {
         );
 
         Placeholders.registerCommon(
-                Identifier.fromNamespaceAndPath("serverslink", "player_count"),
+                Identifier.fromNamespaceAndPath("serverslink", "current_server_emoji"),
                 (ctx, arg) -> {
-                    if (arg == null) {
+                    if (!ctx.hasPlayer() || !(ctx.player() instanceof ServerPlayer player)) {
+                        return PlaceholderResult.invalid();
+                    }
+                    String name = ServersLinkApi.whereIs(player.getUUID());
+                    return switch (name) {
+                        case "Citybuild" -> PlaceholderResult.value("\uD83C\uDFED");
+                        case "Farming" -> PlaceholderResult.value("\u26CF");
+                        case "Building" -> PlaceholderResult.value("\uD83C\uDFD7");
+                        default -> PlaceholderResult.invalid();
+                    };
+                }
+        );
+
+        Placeholders.registerCommon(
+                Identifier.fromNamespaceAndPath("serverslink", "current_server_player_count"),
+                (ctx, arg) -> {
+                    if (!ctx.hasPlayer() || !(ctx.player() instanceof ServerPlayer player)) {
                         return PlaceholderResult.invalid();
                     }
 
+                    String name = ServersLinkApi.whereIs(player.getUUID());
+
                     for (ServerInfo server : ServersLinkApi.getServerList()) {
-                        if (server.getName().equalsIgnoreCase(arg)) {
+                        if (server.getName().equalsIgnoreCase(name)) {
                             return PlaceholderResult.value(Component.literal(String.valueOf(server.getPlayersList().size())));
                         }
                     }

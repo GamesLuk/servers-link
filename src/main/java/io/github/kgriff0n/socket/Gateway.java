@@ -71,16 +71,20 @@ public class Gateway extends Thread {
     }
 
     public void sendToAllFrom(String serverName, Packet packet) {
-        String sourceGroup = ServersLinkApi.getServer(serverName).getGroupId();
+        ServerInfo sourceServer = ServersLinkApi.getServer(serverName);
+        if (sourceServer == null) return;
+
+        String sourceGroup = sourceServer.getGroupId();
+
         for (ServerInfo server : ServersLinkApi.getServerList()) {
             G2SConnection sub = ServersLinkApi.getServerMap().get(server);
             if (sub != null && !server.getName().equals(serverName)) {
-                if (isDebugEnabled()) ServersLink.LOGGER.info("\u001B[33mForward packet {} to {}?", packet.getClass().getName(), server.getName());
+                if (isDebugEnabled()) ServersLink.LOGGER.info("Forward packet {} to {}?", packet.getClass().getName(), server.getName());
                 if (packet.shouldReceive(getSettings(sourceGroup, server.getGroupId()))) {
-                    if (isDebugEnabled()) ServersLink.LOGGER.info("\u001B[32mYes");
+                    if (isDebugEnabled()) ServersLink.LOGGER.info("Yes");
                     sub.send(packet);
                 } else {
-                    if (isDebugEnabled()) ServersLink.LOGGER.info("\u001B[31mNo");
+                    if (isDebugEnabled()) ServersLink.LOGGER.info("No");
                 }
             }
         }

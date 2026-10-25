@@ -35,6 +35,9 @@ public abstract class ServerPlayerEntityMixin {
         if (view instanceof TagValueOutput originalNbtWriteView) {
             ServerPlayer player = (ServerPlayer) (Object) this;
 
+            /* Never write servers-link data for fake players */
+            if (io.github.kgriff0n.api.FakePlayerApi.isFake(server, player)) return;
+
             Path path = server
                     .getWorldPath(LevelResource.ROOT)
                     .resolve("sl-playerdata")

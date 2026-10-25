@@ -6,6 +6,8 @@ import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.server.Settings;
 import io.github.kgriff0n.util.PlayerData;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 import net.minecraft.server.players.PlayerList;
 
@@ -21,29 +23,48 @@ public class PlayerDataPacket implements Packet {
 
     public PlayerDataPacket(UUID uuid) throws IOException {
         this.uuid = uuid;
-        this.data = PlayerData.readData(uuid);
-        this.advancements = PlayerData.readAdvancements(uuid);
-        this.stats = PlayerData.readStats(uuid);
+        this.data = readIfExists(PlayerData.getDataPath(uuid), "data");
+        this.advancements = readIfExists(PlayerData.getAdvancementsPath(uuid), "advancements");
+        this.stats = readIfExists(PlayerData.getStatsPath(uuid), "stats");
+    }
+
+    private byte[] readIfExists(Path path, String label) throws IOException {
+        if (!Files.exists(path)) {
+            return null;
+        }
+        return Files.readAllBytes(path);
+    }
+
+    private void writeIfPresent(Path path, byte[] bytes, String label) {
+        if (bytes == null) {
+            return;
+        }
+        try {
+            Files.createDirectories(path.getParent());
+            Files.write(path, bytes);
+        } catch (IOException e) {
+        }
+    }
+
+    private static int size(byte[] b) {
+        return b == null ? 0 : b.length;
     }
 
     private void writeData() {
-        try {
-            PlayerData.writeData(this.uuid, this.data);
-            PlayerData.writeAdvancements(this.uuid, this.advancements);
-            PlayerData.writeStats(this.uuid, this.stats);
-        } catch (IOException e) {
-            ServersLink.LOGGER.error("Unable to write player data", e);
-        }
+        writeIfPresent(PlayerData.getDataPath(uuid), data, "data");
+        writeIfPresent(PlayerData.getAdvancementsPath(uuid), advancements, "advancements");
+        writeIfPresent(PlayerData.getStatsPath(uuid), stats, "stats");
     }
 
     @Override
     public boolean shouldReceive(Settings settings) {
-        return settings.isPlayerDataSynced();
+        boolean result = settings.isPlayerDataSynced();
+        return result;
     }
 
     @Override
     public void onReceive() {
-        /* Remove player data to reload them from file */
+        /* Remove cached data so it is reloaded from the files */
         PlayerList playerManager = SERVER.getPlayerList();
         ((PlayerManagerAccessor) playerManager).getAdvancements().remove(this.uuid);
         ((PlayerManagerAccessor) playerManager).getStats().remove(this.uuid);

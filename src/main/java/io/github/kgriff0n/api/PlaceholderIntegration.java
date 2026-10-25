@@ -33,7 +33,7 @@ public class PlaceholderIntegration {
                         case "Citybuild" -> PlaceholderResult.value("\uD83C\uDFED");
                         case "Farming" -> PlaceholderResult.value("\u26CF");
                         case "Building" -> PlaceholderResult.value("\uD83C\uDFD7");
-                        default -> PlaceholderResult.invalid();
+                        default -> PlaceholderResult.value("?");
                     };
                 }
         );

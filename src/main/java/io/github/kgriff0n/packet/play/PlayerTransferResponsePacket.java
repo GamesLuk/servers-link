@@ -39,9 +39,6 @@ public class PlayerTransferResponsePacket extends PacketHeader implements Packet
     public void onReceive() {
         ServerInfo server = ServersLinkApi.getServer(sender);
         ServerPlayer player = ServersLink.SERVER.getPlayerList().getPlayer(uuid);
-        if ((flags & PREVENT_LEAVE_MESSAGE) != 0) {
-            ServersLinkApi.getPreventDisconnect().add(uuid);
-        }
         if (server != null && player != null) {
             /* 1. Write the current player state to disk and send it to the target server */
             sendPlayerData(uuid);
@@ -49,16 +46,66 @@ public class PlayerTransferResponsePacket extends PacketHeader implements Packet
             /* 2. Transfer the client slightly delayed so the data arrives first */
             final String targetIp = server.getIp();
             final int targetPort = server.getPort();
-            CompletableFuture.runAsync(() -> ServersLink.SERVER.execute(() -> {
-                ServerPlayer current = ServersLink.SERVER.getPlayerList().getPlayer(uuid);
-                if (current == null) {
-                    ServersLink.LOGGER.warn("[DEBUG] TransferResponse - player {} left before transfer", uuid);
-                    return;
-                }
-                ServersLink.LOGGER.info("[DEBUG] TransferResponse - transferring {} to {}:{}", uuid, targetIp, targetPort);
-                current.connection.send(new ClientboundTransferPacket(targetIp, targetPort));
-                ServerTick.scheduleDisconnect(current.getUUID(), 20);
-            }), CompletableFuture.delayedExecutor(TRANSFER_DELAY_MS, TimeUnit.MILLISECONDS));
+            CompletableFuture.runAsync(() ->
+                            ServersLink.SERVER.execute(() -> {
+                                ServerPlayer current =
+                                        ServersLink.SERVER.getPlayerList().getPlayer(uuid);
+
+                                if (current == null) {
+                                    ServersLink.LOGGER.warn(
+                                            "[JoinLeaveDebug] Transfer aborted: "
+                                                    + "player {} no longer exists",
+                                            uuid
+                                    );
+
+                                    ServersLinkApi.clearPreventDisconnect(uuid);
+                                    return;
+                                }
+
+                                boolean suppressionArmed = false;
+
+                                if ((flags & PREVENT_LEAVE_MESSAGE) != 0) {
+                                    suppressionArmed =
+                                            ServersLinkApi.armPreventDisconnect(uuid);
+
+                                    ServersLink.LOGGER.info(
+                                            "[JoinLeaveDebug][{}] Arm transfer LEAVE "
+                                                    + "suppression uuid={} newlyArmed={} pending={}",
+                                            ServersLinkApi.getServerName(),
+                                            uuid,
+                                            suppressionArmed,
+                                            ServersLinkApi.isPreventDisconnectPending(uuid)
+                                    );
+                                }
+
+                                try {
+                                    current.connection.send(
+                                            new ClientboundTransferPacket(targetIp, targetPort)
+                                    );
+
+                                    ServerTick.scheduleDisconnect(current.getUUID(), 20);
+
+                                } catch (RuntimeException e) {
+                                    // Do not leave a suppression token after a failed transfer.
+                                    if (suppressionArmed) {
+                                        ServersLinkApi.clearPreventDisconnect(uuid);
+                                    }
+
+                                    ServersLink.LOGGER.error(
+                                            "[JoinLeaveDebug] Could not initiate transfer "
+                                                    + "for player {}",
+                                            uuid,
+                                            e
+                                    );
+
+                                    throw e;
+                                }
+                            }),
+                    CompletableFuture.delayedExecutor(
+                            TRANSFER_DELAY_MS,
+                            TimeUnit.MILLISECONDS
+                    )
+            );
         } else {
             ServersLink.LOGGER.warn("[DEBUG] TransferResponse - transfer skipped (serverInfo={}, player={})", server, player);
         }

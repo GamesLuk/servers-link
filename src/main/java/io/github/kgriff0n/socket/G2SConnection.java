@@ -6,6 +6,7 @@ import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.packet.PacketHeader;
 import io.github.kgriff0n.packet.info.NewPlayerPacket;
 import io.github.kgriff0n.packet.info.NewServerPacket;
+import io.github.kgriff0n.packet.server.PlayerDataSyncCompletePacket;
 import io.github.kgriff0n.server.Group;
 import io.github.kgriff0n.server.ServerInfo;
 import io.github.kgriff0n.api.ServersLinkApi;
@@ -81,6 +82,24 @@ public class G2SConnection extends Thread {
             while (IS_RUNNING) {
                 Packet packet = (Packet) in.readObject();
                 if (Gateway.getInstance().isDebugEnabled()) ServersLink.LOGGER.info("\u001B[95mPacket received {}", packet.getClass());
+                // Completion is an acknowledgement to this Gateway only.
+                // It must not be forwarded to other subservers.
+                if (packet instanceof PlayerDataSyncCompletePacket completion) {
+                    if (server == null
+                            || !server.getName().equals(completion.getServerName())) {
+
+                        ServersLink.LOGGER.error(
+                                "[ShutdownSync] Ignoring completion packet whose declared "
+                                        + "server {} does not match its connection {}",
+                                completion.getServerName(),
+                                server == null ? "<unidentified>" : server.getName()
+                        );
+                        continue;
+                    }
+
+                    SERVER.execute(completion::onReceive);
+                    continue;
+                }
                 if (packet instanceof NewServerPacket pkt) {
                     this.server = pkt.getServer();
                     this.setName(String.format("%s thread", server.getName()));

@@ -1,5 +1,6 @@
 package io.github.kgriff0n.packet.play;
 
+import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.api.ServersLinkApi;
 import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.packet.PacketHeader;
@@ -42,12 +43,43 @@ public class PlayerTransferRequestPacket extends PacketHeader implements Packet 
     @Override
     public void onReceive() {
         ServersLinkApi.addWaitingPlayer(uuid);
-        ServersLinkApi.send(new PlayerTransferResponsePacket(uuid, ServersLinkApi.getServerName(), sender));
-        if ((flags & OVERRIDE_POSITION) != 0) {
-            ServersLinkApi.addPositionOverride(uuid, new Vec3(targetX, targetY, targetZ), new Vec2(yaw, pitch), world);
+
+        boolean preventJoin = (flags & PREVENT_JOIN_MESSAGE) != 0;
+
+        if (preventJoin) {
+            boolean added = ServersLinkApi.getPreventConnect().add(uuid);
+
+            ServersLink.LOGGER.info(
+                    "[JoinLeaveDebug][{}] Arm JOIN suppression "
+                            + "uuid={} flag=true added={} pending={}",
+                    ServersLinkApi.getServerName(),
+                    uuid,
+                    added,
+                    ServersLinkApi.getPreventConnect().contains(uuid)
+            );
+        } else {
+            ServersLink.LOGGER.info(
+                    "[JoinLeaveDebug][{}] JOIN suppression flag=false uuid={}",
+                    ServersLinkApi.getServerName(),
+                    uuid
+            );
         }
-        if ((flags & PREVENT_JOIN_MESSAGE) != 0) {
-            ServersLinkApi.getPreventConnect().add(uuid);
+
+        ServersLinkApi.send(
+                new PlayerTransferResponsePacket(
+                        uuid,
+                        ServersLinkApi.getServerName(),
+                        sender
+                )
+        );
+
+        if ((flags & OVERRIDE_POSITION) != 0) {
+            ServersLinkApi.addPositionOverride(
+                    uuid,
+                    new Vec3(targetX, targetY, targetZ),
+                    new Vec2(yaw, pitch),
+                    world
+            );
         }
     }
 

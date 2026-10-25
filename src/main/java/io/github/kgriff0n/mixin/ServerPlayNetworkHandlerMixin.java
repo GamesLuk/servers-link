@@ -1,6 +1,7 @@
 package io.github.kgriff0n.mixin;
 
 import com.mojang.serialization.JsonOps;
+import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.packet.play.PlayerChatPacket;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
@@ -18,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.UUID;
+
 import static io.github.kgriff0n.ServersLink.SERVER;
 
 @Mixin(ServerGamePacketListenerImpl.class)
@@ -32,5 +35,41 @@ public abstract class ServerPlayNetworkHandlerMixin {
         Component formattedMessage = params.decorate(message.decoratedContent());
         PlayerChatPacket packet = new PlayerChatPacket(ComponentSerialization.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, SERVER.registryAccess()), formattedMessage).getOrThrow().toString(), this.getPlayer().getName().getString());
         ServersLinkApi.send(packet);
+    }
+
+    @Redirect(
+            method = "removePlayerFromWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/players/PlayerList;broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V"
+            ),
+            require = 1
+    )
+    private void serversLink$filterLeaveBroadcast(
+            PlayerList playerList,
+            Component message,
+            boolean overlay
+    ) {
+        UUID uuid = this.player.getUUID();
+
+        boolean pending =
+                ServersLinkApi.isPreventDisconnectPending(uuid);
+
+        boolean suppress =
+                ServersLinkApi.consumePreventDisconnect(uuid);
+
+        ServersLink.LOGGER.info(
+                "[JoinLeaveDebug][{}] LEAVE player={} uuid={} "
+                        + "pendingBefore={} result={}",
+                ServersLinkApi.getServerName(),
+                this.player.getName().getString(),
+                uuid,
+                pending,
+                suppress ? "SUPPRESS" : "ALLOW"
+        );
+
+        if (!suppress) {
+            playerList.broadcastSystemMessage(message, overlay);
+        }
     }
 }

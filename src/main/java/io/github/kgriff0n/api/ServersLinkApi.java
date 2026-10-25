@@ -33,6 +33,11 @@ public class ServersLinkApi {
     private static final HashSet<UUID> preventConnect = new HashSet<>();
     private static final HashSet<UUID> preventDisconnect = new HashSet<>();
 
+    private static final long PREVENT_DISCONNECT_TTL_MS = 3_000L;
+
+    private static final Map<UUID, Long> preventDisconnectUntil =
+            new ConcurrentHashMap<>();
+
     /** List of player UUIDs that can connect - Gateway will likely ignore this */
     private static final ArrayList<UUID> waitingPlayers = new ArrayList<>();
 
@@ -75,6 +80,55 @@ public class ServersLinkApi {
         for (ServerInfo server : list) {
             serverList.put(server, new G2SConnection(null));
         }
+    }
+
+    public static synchronized boolean armPreventDisconnect(UUID uuid) {
+        long now = System.currentTimeMillis();
+        Long expiry = preventDisconnectUntil.get(uuid);
+
+        // Do not extend an already active suppression because of duplicate packets.
+        if (expiry != null && expiry > now
+                && preventDisconnect.contains(uuid)) {
+            return false;
+        }
+
+        // Remove an expired or legacy entry before creating a new token.
+        preventDisconnect.remove(uuid);
+        preventDisconnectUntil.remove(uuid);
+
+        preventDisconnect.add(uuid);
+        preventDisconnectUntil.put(
+                uuid,
+                now + PREVENT_DISCONNECT_TTL_MS
+        );
+
+        return true;
+    }
+
+    public static synchronized boolean consumePreventDisconnect(UUID uuid) {
+        Long expiry = preventDisconnectUntil.remove(uuid);
+        boolean existed = preventDisconnect.remove(uuid);
+
+        return existed
+                && expiry != null
+                && expiry >= System.currentTimeMillis();
+    }
+
+    public static synchronized void clearPreventDisconnect(UUID uuid) {
+        preventDisconnect.remove(uuid);
+        preventDisconnectUntil.remove(uuid);
+    }
+
+    public static synchronized boolean isPreventDisconnectPending(UUID uuid) {
+        Long expiry = preventDisconnectUntil.get(uuid);
+
+        if (expiry == null || expiry < System.currentTimeMillis()) {
+            preventDisconnect.remove(uuid);
+            preventDisconnectUntil.remove(uuid);
+            return false;
+        }
+
+        return preventDisconnect.contains(uuid);
     }
 
     /**

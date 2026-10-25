@@ -71,17 +71,33 @@ public class Gateway extends Thread {
     }
 
     public void sendToAllFrom(String serverName, Packet packet) {
-        String sourceGroup = ServersLinkApi.getServer(serverName).getGroupId();
+        ServersLink.LOGGER.info("[DEBUG] GATEWAY - sendToAllFrom called - Source: {}, Packet: {}", serverName, packet.getClass().getName());
+
+        ServerInfo sourceServer = ServersLinkApi.getServer(serverName);
+        if (sourceServer == null) {
+            ServersLink.LOGGER.error("[DEBUG] GATEWAY - Source server {} not found!", serverName);
+            return;
+        }
+
+        String sourceGroup = sourceServer.getGroupId();
+        ServersLink.LOGGER.info("[DEBUG] GATEWAY - Source group: {}", sourceGroup);
+
         for (ServerInfo server : ServersLinkApi.getServerList()) {
             G2SConnection sub = ServersLinkApi.getServerMap().get(server);
             if (sub != null && !server.getName().equals(serverName)) {
-                if (isDebugEnabled()) ServersLink.LOGGER.info("\u001B[33mForward packet {} to {}?", packet.getClass().getName(), server.getName());
-                if (packet.shouldReceive(getSettings(sourceGroup, server.getGroupId()))) {
-                    if (isDebugEnabled()) ServersLink.LOGGER.info("\u001B[32mYes");
+                if (isDebugEnabled()) ServersLink.LOGGER.info("\u001B[33m[DEBUG] GATEWAY - Forward packet {} to {}?", packet.getClass().getName(), server.getName());
+                Settings settings = getSettings(sourceGroup, server.getGroupId());
+                boolean shouldReceive = packet.shouldReceive(settings);
+                ServersLink.LOGGER.info("[DEBUG] GATEWAY - Server: {}, Group: {}, shouldReceive: {}", server.getName(), server.getGroupId(), shouldReceive);
+
+                if (shouldReceive) {
+                    if (isDebugEnabled()) ServersLink.LOGGER.info("\u001B[32m[DEBUG] GATEWAY - Yes, sending to {}", server.getName());
                     sub.send(packet);
                 } else {
-                    if (isDebugEnabled()) ServersLink.LOGGER.info("\u001B[31mNo");
+                    if (isDebugEnabled()) ServersLink.LOGGER.info("\u001B[31m[DEBUG] GATEWAY - No, skipping {}", server.getName());
                 }
+            } else if (sub == null) {
+                ServersLink.LOGGER.warn("[DEBUG] GATEWAY - Connection is NULL for server: {}", server.getName());
             }
         }
     }

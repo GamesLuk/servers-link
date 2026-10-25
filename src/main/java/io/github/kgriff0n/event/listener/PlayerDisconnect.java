@@ -20,20 +20,31 @@ public class PlayerDisconnect implements ServerPlayConnectionEvents.Disconnect {
         ServerPlayer player = serverPlayNetworkHandler.player;
         UUID uuid = player.getUUID();
         String name = player.getName().getString();
+        ServersLink.LOGGER.info("[DEBUG] PlayerDisconnect triggered for player {} (UUID: {})", name, uuid);
+
         PlayerDisconnectPacket packet = new PlayerDisconnectPacket(uuid, name);
 
         // Remove player from list
+        ServersLink.LOGGER.info("[DEBUG] Removing player {} from server {}", name, ServersLink.getServerInfo().getName());
         Objects.requireNonNull(ServersLinkApi.getServer(ServersLink.getServerInfo().getName())).removePlayer(uuid);
 
         if (ServersLink.isGateway) {
             Gateway gateway = Gateway.getInstance();
+            boolean preventDisconnect = ServersLinkApi.getPreventDisconnect().contains(uuid);
+            ServersLink.LOGGER.info("[DEBUG] GATEWAY - Player disconnect - PreventDisconnect: {}", preventDisconnect);
+
             /* Delete player from list and send packet ONLY if the player is not transferred */
-            if (!ServersLinkApi.getPreventDisconnect().contains(uuid)) {
+            if (!preventDisconnect) {
+                ServersLink.LOGGER.info("[DEBUG] GATEWAY - Sending PlayerDisconnectPacket to all servers for {}", name);
                 gateway.sendToAll(packet);
+                ServersLink.LOGGER.info("[DEBUG] GATEWAY - Sending updated ServersInfoPacket");
                 gateway.sendToAll(new ServersInfoPacket(ServersLinkApi.getServerList()));
+            } else {
+                ServersLink.LOGGER.info("[DEBUG] GATEWAY - Skipping disconnect broadcast (player is being transferred)");
             }
         } else {
             SubServer connection = SubServer.getInstance();
+            ServersLink.LOGGER.info("[DEBUG] SUBSERVER - Sending PlayerDisconnectPacket to gateway for {}", name);
             connection.send(packet);
         }
     }

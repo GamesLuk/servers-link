@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.github.kgriff0n.api.PlaceholderIntegration;
 import io.github.kgriff0n.api.ServersLinkApi;
+import io.github.kgriff0n.command.PrefixCommand;
 import io.github.kgriff0n.command.ServerCommand;
 import io.github.kgriff0n.event.listener.*;
 import io.github.kgriff0n.server.ServerInfo;
@@ -59,6 +60,7 @@ public class ServersLink implements ModInitializer {
 		loadServerInfo();
 
 		ServerCommand.register();
+        PrefixCommand.register();
 
         ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.register(new PlayerJoin());
 		ServerLifecycleEvents.SERVER_STARTED.register(new ServerStart());

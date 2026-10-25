@@ -3,6 +3,7 @@ package io.github.kgriff0n.event.listener;
 import io.github.kgriff0n.PlayersInformation;
 import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.api.FakePlayerApi;
+import io.github.kgriff0n.api.PlaceholderIntegration;
 import io.github.kgriff0n.event.ServersLinkEvents;
 import io.github.kgriff0n.packet.info.NewPlayerPacket;
 import io.github.kgriff0n.packet.server.PlayerAcknowledgementPacket;
@@ -15,14 +16,17 @@ import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundTransferPacket;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerConfigurationPacketListenerImpl;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Set;
 import java.util.UUID;
 
 public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerConfigurationConnectionEvents.Configure {
@@ -31,6 +35,14 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerConfig
     public void onPlayReady(ServerGamePacketListenerImpl serverPlayNetworkHandler, @NotNull PacketSender packetSender, @NotNull MinecraftServer minecraftServer) {
 
         ServerPlayer newPlayer = serverPlayNetworkHandler.player;
+
+        /* Überprüfe, ob der Spieler zum Spawn teleportiert werden soll */
+        if (PlaceholderIntegration.shouldSpawnOnJoin(newPlayer.getUUID())) {
+            ServerLevel world = minecraftServer.getLevel(minecraftServer.getRespawnData().dimension());
+            BlockPos spawnPos = minecraftServer.getRespawnData().pos();
+            float spawnAngle = minecraftServer.getRespawnData().yaw();
+            newPlayer.teleportTo(world, spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, Set.of(), spawnAngle, 0.0F, false);
+        }
 
         /* Dummy player packet */
         NewPlayerPacket dummyPlayer = new NewPlayerPacket(newPlayer.getGameProfile());

@@ -5,11 +5,12 @@ import io.github.kgriff0n.mixin.accessor.PlayerManagerAccessor;
 import io.github.kgriff0n.packet.Packet;
 import io.github.kgriff0n.server.Settings;
 import io.github.kgriff0n.util.PlayerData;
+import net.minecraft.server.players.PlayerList;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
-import net.minecraft.server.players.PlayerList;
 
 import static io.github.kgriff0n.ServersLink.SERVER;
 

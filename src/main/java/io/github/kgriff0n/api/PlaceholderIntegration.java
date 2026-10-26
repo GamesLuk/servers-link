@@ -25,14 +25,33 @@ public class PlaceholderIntegration {
         Placeholders.registerCommon(
                 Identifier.fromNamespaceAndPath("serverslink", "current_server_emoji"),
                 (ctx, arg) -> {
-                    if (!ctx.hasPlayer() || !(ctx.player() instanceof ServerPlayer player)) {
+                    if (!ctx.hasPlayer()
+                            || !(ctx.player() instanceof ServerPlayer player)) {
                         return PlaceholderResult.invalid();
                     }
-                    String name = ServersLinkApi.whereIs(player.getUUID());
+
+                    String name;
+
+                    while (true) {
+                        name = ServersLinkApi.whereIs(player.getUUID());
+
+                        // whereIs() returns an empty string if no server was found.
+                        if (name != null && !name.isBlank()) {
+                            break;
+                        }
+
+                        try {
+                            Thread.sleep(50L);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return PlaceholderResult.invalid();
+                        }
+                    }
+
                     return switch (name) {
-                        case "Citybuild" -> PlaceholderResult.value("\uD83C\uDFED");
-                        case "Farming" -> PlaceholderResult.value("\u26CF");
-                        case "Building" -> PlaceholderResult.value("\uD83C\uDFD7");
+                        case "Citybuild" -> PlaceholderResult.value("🏭");
+                        case "Farming" -> PlaceholderResult.value("⛏");
+                        case "Building" -> PlaceholderResult.value("🏗");
                         default -> PlaceholderResult.value("?");
                     };
                 }

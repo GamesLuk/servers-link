@@ -8,6 +8,7 @@ import io.github.kgriff0n.ServersLink;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerInfo implements Serializable {
 
@@ -21,8 +22,8 @@ public class ServerInfo implements Serializable {
     private float tps;
     private boolean down;
 
-    private final HashMap<UUID, String> playersList;
-    private final HashMap<UUID, String> playersPropertiesList;
+    private final ConcurrentHashMap<UUID, String> playersList;
+    private final ConcurrentHashMap<UUID, String> playersPropertiesList;
 
     public ServerInfo(String groupId, String name, String ip, int port) {
         this.groupId = groupId;
@@ -33,8 +34,8 @@ public class ServerInfo implements Serializable {
         this.tps = 20.0f;
         this.down = false;
 
-        this.playersList = new HashMap<>();
-        this.playersPropertiesList = new HashMap<>();
+        this.playersList = new ConcurrentHashMap<>();
+        this.playersPropertiesList = new ConcurrentHashMap<>();
 
         this.randomValue = new Random().nextInt();
     }
@@ -55,7 +56,7 @@ public class ServerInfo implements Serializable {
         return port;
     }
 
-    public HashMap<UUID, String> getPlayersList() {
+    public ConcurrentHashMap<UUID, String> getPlayersList() {
         return playersList;
     }
 

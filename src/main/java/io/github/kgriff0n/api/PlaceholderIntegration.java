@@ -12,16 +12,27 @@ import java.util.UUID;
 public class PlaceholderIntegration {
 
     public static void register() {
+
+        // Aktueller Server
         Placeholders.registerCommon(
                 Identifier.fromNamespaceAndPath("serverslink", "current_server"),
                 (ctx, arg) -> {
-                    if (!ctx.hasPlayer() || !(ctx.player() instanceof ServerPlayer player)) {
+                    if (!ctx.hasPlayer()
+                            || !(ctx.player() instanceof ServerPlayer player)) {
                         return PlaceholderResult.invalid();
                     }
-                    return PlaceholderResult.value(Component.literal(ServersLinkApi.whereIs(player.getUUID())));
+
+                    String name = ServersLinkApi.whereIs(player.getUUID());
+
+                    if (name == null || name.isBlank()) {
+                        return text("…");
+                    }
+
+                    return text(name);
                 }
         );
 
+        // Server-Emoji
         Placeholders.registerCommon(
                 Identifier.fromNamespaceAndPath("serverslink", "current_server_emoji"),
                 (ctx, arg) -> {
@@ -30,50 +41,53 @@ public class PlaceholderIntegration {
                         return PlaceholderResult.invalid();
                     }
 
-                    String name;
+                    String name = ServersLinkApi.whereIs(player.getUUID());
 
-                    while (true) {
-                        name = ServersLinkApi.whereIs(player.getUUID());
-
-                        // whereIs() returns an empty string if no server was found.
-                        if (name != null && !name.isBlank()) {
-                            break;
-                        }
-
-                        try {
-                            Thread.sleep(50L);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            return PlaceholderResult.invalid();
-                        }
+                    if (name == null || name.isBlank()) {
+                        return text("…");
                     }
 
-                    return switch (name) {
-                        case "Citybuild" -> PlaceholderResult.value("🏭");
-                        case "Farming" -> PlaceholderResult.value("⛏");
-                        case "Building" -> PlaceholderResult.value("🏗");
-                        default -> PlaceholderResult.value("?");
+                    String emoji = switch (name) {
+                        case "Citybuild" -> "🏭";
+                        case "Farming" -> "⛏";
+                        case "Building" -> "🏗";
+                        default -> "?";
                     };
+
+                    return text(emoji);
                 }
         );
 
+        // Spieleranzahl des aktuellen Servers
         Placeholders.registerCommon(
                 Identifier.fromNamespaceAndPath("serverslink", "current_server_player_count"),
                 (ctx, arg) -> {
-                    if (!ctx.hasPlayer() || !(ctx.player() instanceof ServerPlayer player)) {
+                    if (!ctx.hasPlayer()
+                            || !(ctx.player() instanceof ServerPlayer player)) {
                         return PlaceholderResult.invalid();
                     }
 
                     String name = ServersLinkApi.whereIs(player.getUUID());
 
+                    if (name == null || name.isBlank()) {
+                        return text("…");
+                    }
+
                     for (ServerInfo server : ServersLinkApi.getServerList()) {
                         if (server.getName().equalsIgnoreCase(name)) {
-                            return PlaceholderResult.value(Component.literal(String.valueOf(server.getPlayersList().size())));
+                            return text(
+                                    String.valueOf(server.getPlayersList().size())
+                            );
                         }
                     }
-                    return PlaceholderResult.invalid();
+
+                    return text("…");
                 }
         );
+    }
+
+    private static PlaceholderResult text(String value) {
+        return PlaceholderResult.value(Component.literal(value));
     }
 
     /**

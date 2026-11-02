@@ -37,11 +37,7 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerConfig
         ServerPlayer newPlayer = serverPlayNetworkHandler.player;
 
         /* Überprüfe, ob der Spieler zum Spawn teleportiert werden soll */
-        if (ServersLink.isGateway && (
-                PlaceholderIntegration.getLuckpermsMetaBoolean("spawn-on-join", newPlayer.getUUID())
-            || (PlaceholderIntegration.getLuckpermsMetaBoolean("spawn-on-world-change", newPlayer.getUUID()))
-                && ServersLinkApi.getPreventConnect().contains(newPlayer.getUUID()))
-        ){
+        if (PlaceholderIntegration.getLuckpermsMetaBoolean("spawn-on-join", newPlayer.getUUID())){
             ServerLevel world = minecraftServer.getLevel(minecraftServer.getRespawnData().dimension());
             BlockPos spawnPos = minecraftServer.getRespawnData().pos();
             float spawnAngle = minecraftServer.getRespawnData().yaw();
@@ -55,7 +51,7 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerConfig
         if (ServersLink.isGateway) {
             Gateway gateway = Gateway.getInstance();
             if (gateway.isConnectedPlayer(newPlayer.getUUID()) && !ServersLinkApi.getPreventConnect().contains(newPlayer.getUUID())) {
-                ServersLinkApi.transferPlayer(newPlayer, ServersLink.getServerInfo().getName(), ServersLinkApi.whereIs(newPlayer.getUUID()));
+                ServersLinkApi.transferPlayer(newPlayer, ServersLink.getServerInfo().getName(), ServersLinkApi.whereIs(newPlayer.getUUID()), false);
             } else {
                 String lastServer = PlayersInformation.getLastServer(newPlayer.getUUID());
                 ServerInfo lastServerInfo = ServersLinkApi.getServer(lastServer);
@@ -78,7 +74,7 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerConfig
                         newPlayer.sendSystemMessage(Component.literal("An unexpected error occurred while attempting to reconnect you to your previous server").withStyle(ChatFormatting.RED));
                     }
                 } else {
-                    ServersLinkApi.transferPlayer(newPlayer, ServersLink.getServerInfo().getName(), lastServer);
+                    ServersLinkApi.transferPlayer(newPlayer, ServersLink.getServerInfo().getName(), lastServer, false);
                 }
             }
         } else {

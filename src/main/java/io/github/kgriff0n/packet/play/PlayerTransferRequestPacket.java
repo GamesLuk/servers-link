@@ -7,6 +7,10 @@ import io.github.kgriff0n.packet.PacketHeader;
 import io.github.kgriff0n.server.Settings;
 import io.github.kgriff0n.socket.Gateway;
 import java.util.UUID;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
@@ -14,6 +18,7 @@ public class PlayerTransferRequestPacket extends PacketHeader implements Packet 
 
     private static final byte OVERRIDE_POSITION = 1 << 0;
     private static final byte PREVENT_JOIN_MESSAGE = 1 << 1;
+    private static final byte TO_SPAWN = 1 << 2;
     private byte flags;
 
     private final UUID uuid;
@@ -40,11 +45,18 @@ public class PlayerTransferRequestPacket extends PacketHeader implements Packet 
         this.world = world;
     }
 
+    public PlayerTransferRequestPacket(UUID uuid, String sender, String recipient, boolean toWorldSpawn) {
+        this(uuid, sender, recipient);
+        if (toWorldSpawn) this.flags |= TO_SPAWN;
+    }
+
     @Override
     public void onReceive() {
         ServersLinkApi.addWaitingPlayer(uuid);
 
         boolean preventJoin = (flags & PREVENT_JOIN_MESSAGE) != 0;
+        boolean override = (flags & OVERRIDE_POSITION) != 0;
+        boolean toSpawn = (flags & TO_SPAWN) != 0;
 
         if (preventJoin) {
             boolean added = ServersLinkApi.getPreventConnect().add(uuid);
@@ -73,7 +85,20 @@ public class PlayerTransferRequestPacket extends PacketHeader implements Packet 
                 )
         );
 
-        if ((flags & OVERRIDE_POSITION) != 0) {
+        if (toSpawn) {
+            MinecraftServer minecraftServer = ServersLinkApi.getServer();
+            String dimensionId = minecraftServer.getRespawnData().dimension().identifier().toString();
+            BlockPos spawnPos = minecraftServer.getRespawnData().pos();
+            float spawnAngle = minecraftServer.getRespawnData().yaw();
+            ServersLinkApi.addPositionOverride(
+                    uuid,
+                    new Vec3(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ()),
+                    new Vec2(spawnAngle, 0f),
+                    dimensionId
+            );
+        }
+
+        if (override) {
             ServersLinkApi.addPositionOverride(
                     uuid,
                     new Vec3(targetX, targetY, targetZ),

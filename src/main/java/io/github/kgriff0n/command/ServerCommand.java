@@ -3,6 +3,7 @@ package io.github.kgriff0n.command;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.github.kgriff0n.ServersLink;
+import io.github.kgriff0n.api.PlaceholderIntegration;
 import io.github.kgriff0n.packet.play.TeleportationRequestPacket;
 import io.github.kgriff0n.packet.play.TeleportationResponsePacket;
 import io.github.kgriff0n.socket.Gateway;
@@ -140,7 +141,8 @@ public class ServerCommand {
             } else if (ServersLinkApi.getServer(serverName) == null) {
                 player.sendSystemMessage(Component.literal("This server does not exist").withStyle(ChatFormatting.RED));
             } else {
-                ServersLinkApi.transferPlayer(player, ServersLink.getServerInfo().getName(), serverName);
+                ServersLinkApi.transferPlayer(player, ServersLink.getServerInfo().getName(), serverName,
+                        PlaceholderIntegration.getLuckpermsMetaBoolean("spawn-on-world-change", player.getUUID()));
             }
         }
         return Command.SINGLE_SUCCESS;

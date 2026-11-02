@@ -323,15 +323,19 @@ public class ServersLinkApi {
         return null;
     }
 
+    public static void transferPlayer(ServerPlayer player, String from, String to) {
+        transferPlayer(player, from, to, false);
+    }
+
     /**
      * Transfers a player to another server.
      * @param player the player to transfer
      * @param from name of the current server
      * @param to the name of the server to which the player will be transferred
+     * @param toSpawn if the player should be teleported to world spawn
      */
-    public static void transferPlayer(ServerPlayer player, String from, String to) {
-        ServersLink.LOGGER.info("transferPlayer reached");
-        PlayerTransferRequestPacket transferPacket = new PlayerTransferRequestPacket(player.getUUID(), from, to);
+    public static void transferPlayer(ServerPlayer player, String from, String to, boolean toSpawn) {
+        PlayerTransferRequestPacket transferPacket = new PlayerTransferRequestPacket(player.getUUID(), from, to, toSpawn);
         ServersLinkApi.send(transferPacket);
     }
 

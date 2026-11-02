@@ -37,7 +37,11 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerConfig
         ServerPlayer newPlayer = serverPlayNetworkHandler.player;
 
         /* Überprüfe, ob der Spieler zum Spawn teleportiert werden soll */
-        if (PlaceholderIntegration.shouldSpawnOnJoin(newPlayer.getUUID())) {
+        if (ServersLink.isGateway && (
+                PlaceholderIntegration.getLuckpermsMetaBoolean("spawn-on-join", newPlayer.getUUID())
+            || (PlaceholderIntegration.getLuckpermsMetaBoolean("spawn-on-world-change", newPlayer.getUUID()))
+                && ServersLinkApi.getPreventConnect().contains(newPlayer.getUUID()))
+        ){
             ServerLevel world = minecraftServer.getLevel(minecraftServer.getRespawnData().dimension());
             BlockPos spawnPos = minecraftServer.getRespawnData().pos();
             float spawnAngle = minecraftServer.getRespawnData().yaw();

@@ -97,7 +97,7 @@ public class PlaceholderIntegration {
      * @param uuid Die UUID des Spielers
      * @return true wenn der Meta-Tag auf "true" gesetzt ist, sonst false
      */
-    public static boolean shouldSpawnOnJoin(UUID uuid) {
+    public static boolean getLuckpermsMetaBoolean(String id, UUID uuid) {
         try {
             // Entspricht: LuckPerms luckPerms = LuckPermsProvider.get();
             Class<?> providerClass = Class.forName("net.luckperms.api.LuckPermsProvider");
@@ -123,7 +123,7 @@ public class PlaceholderIntegration {
             if (metaData == null) return false;
 
             // Entspricht: metaData.getMetaValue("spawn-on-join")
-            Object metaValueObj = metaData.getClass().getMethod("getMetaValue", String.class).invoke(metaData, "spawn-on-join");
+            Object metaValueObj = metaData.getClass().getMethod("getMetaValue", String.class).invoke(metaData, id);
 
             if (metaValueObj instanceof String metaValue) {
                 return "true".equalsIgnoreCase(metaValue);

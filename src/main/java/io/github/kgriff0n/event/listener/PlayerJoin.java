@@ -36,7 +36,7 @@ public class PlayerJoin implements ServerPlayConnectionEvents.Join, ServerConfig
 
         ServerPlayer newPlayer = serverPlayNetworkHandler.player;
 
-        /* Überprüfe, ob der Spieler zum Spawn teleportiert werden soll */
+        /* Check, if the player should get teleported to spawn */
         if (PlaceholderIntegration.getLuckpermsMetaBoolean("spawn-on-join", newPlayer.getUUID())){
             ServerLevel world = minecraftServer.getLevel(minecraftServer.getRespawnData().dimension());
             BlockPos spawnPos = minecraftServer.getRespawnData().pos();

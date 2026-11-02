@@ -25,7 +25,7 @@ public class PlaceholderIntegration {
                     String name = ServersLinkApi.whereIs(player.getUUID());
 
                     if (name == null || name.isBlank()) {
-                        return text("…");
+                        name = "Citybuild";
                     }
 
                     return text(name);
@@ -44,7 +44,7 @@ public class PlaceholderIntegration {
                     String name = ServersLinkApi.whereIs(player.getUUID());
 
                     if (name == null || name.isBlank()) {
-                        return text("…");
+                        return text("🏭");
                     }
 
                     String emoji = switch (name) {
@@ -70,7 +70,7 @@ public class PlaceholderIntegration {
                     String name = ServersLinkApi.whereIs(player.getUUID());
 
                     if (name == null || name.isBlank()) {
-                        return text("…");
+                        name = "Citybuild";
                     }
 
                     for (ServerInfo server : ServersLinkApi.getServerList()) {

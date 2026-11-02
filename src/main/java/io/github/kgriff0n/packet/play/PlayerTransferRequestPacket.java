@@ -101,7 +101,7 @@ public class PlayerTransferRequestPacket extends PacketHeader implements Packet 
         if (override) {
             ServersLinkApi.addPositionOverride(
                     uuid,
-                    new Vec3(targetX, targetY, targetZ),
+                    new Vec3(targetX + 0.5, targetY, targetZ + 0.5),
                     new Vec2(yaw, pitch),
                     world
             );

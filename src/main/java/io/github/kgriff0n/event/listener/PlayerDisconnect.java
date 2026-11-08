@@ -25,6 +25,9 @@ public class PlayerDisconnect implements ServerPlayConnectionEvents.Disconnect {
         // Remove player from list
         Objects.requireNonNull(ServersLinkApi.getServer(ServersLink.getServerInfo().getName())).removePlayer(uuid);
 
+        // Sync Data
+        ServersLinkApi.sendPlayerData(uuid);
+
         if (ServersLink.isGateway) {
             Gateway gateway = Gateway.getInstance();
             /* Delete player from list and send packet ONLY if the player is not transferred */

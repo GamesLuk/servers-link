@@ -92,7 +92,7 @@ public class PlayerTransferRequestPacket extends PacketHeader implements Packet 
             float spawnAngle = minecraftServer.getRespawnData().yaw();
             ServersLinkApi.addPositionOverride(
                     uuid,
-                    new Vec3(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ()),
+                    new Vec3(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5),
                     new Vec2(spawnAngle, 0f),
                     dimensionId
             );

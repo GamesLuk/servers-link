@@ -69,8 +69,9 @@ public class ServersLink implements ModInitializer {
 		ServerPlayConnectionEvents.JOIN.register(new PlayerJoin());
 		ServerPlayConnectionEvents.DISCONNECT.register(new PlayerDisconnect());
 		ServerTickEvents.START_SERVER_TICK.register(new ServerTick());
+        PlayerAdvancement.register();
 
-		if (FabricLoader.getInstance().isModLoaded("placeholder-api")) PlaceholderIntegration.register();
+        if (FabricLoader.getInstance().isModLoaded("placeholder-api")) PlaceholderIntegration.register();
     }
 
 	public static ServerInfo getServerInfo() {

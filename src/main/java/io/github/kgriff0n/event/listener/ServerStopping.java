@@ -155,7 +155,11 @@ public class ServerStopping implements ServerLifecycleEvents.ServerStopping {
                     ShutdownPlayerDataSync.describeState()
             );
 
-            gateway.sendToAll(new ServerStopPacket());
+            ArrayList<String> serverNames = ServersLinkApi.getServerNames();
+            serverNames.remove(gatewayName);
+            serverNames.forEach(serverName -> {
+                gateway.sendToAll(new ServerStopPacket(gatewayName, serverName));
+            });
 
             waitAndProcessTasks(
                     server,

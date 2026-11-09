@@ -6,6 +6,7 @@ import io.github.kgriff0n.ServersLink;
 import io.github.kgriff0n.api.PlaceholderIntegration;
 import io.github.kgriff0n.packet.play.TeleportationRequestPacket;
 import io.github.kgriff0n.packet.play.TeleportationResponsePacket;
+import io.github.kgriff0n.packet.server.ServerStopPacket;
 import io.github.kgriff0n.socket.Gateway;
 import io.github.kgriff0n.socket.SubServer;
 import io.github.kgriff0n.util.DummyPlayer;
@@ -33,6 +34,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.world.entity.Relative;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Locale;
 
@@ -63,6 +66,22 @@ public class ServerCommand {
                         )
 
                 )
+                .then(literal("restart")
+                        .requires(Permissions.require("server.restart", PermissionLevel.GAMEMASTERS))
+                        .then(argument("server", StringArgumentType.string())
+                                .suggests((context, builder) -> {
+                                    if (!ServersLink.isGateway) return builder.buildFuture();
+                                    ArrayList<String> serverNames = ServersLinkApi.getServerNames();
+                                    serverNames.remove(ServersLinkApi.getServerName());
+                                    for (String serverName : serverNames) {
+                                        builder.suggest(serverName);
+                                    }
+                                    return builder.buildFuture();
+                                })
+                                .executes(context -> restart(context.getSource().getPlayer(), StringArgumentType.getString(context, "server")))
+                        )
+
+                )
                 .then(literal("whereis")
                         .requires(Permissions.require("server.whereis", PermissionLevel.GAMEMASTERS))
                         .then(argument("player", EntityArgument.player())
@@ -89,6 +108,16 @@ public class ServerCommand {
                         .requires(Permissions.require("server.run", PermissionLevel.GAMEMASTERS))
                         .redirect(dispatcher.getRoot()))
         ));
+    }
+
+    private static int restart(ServerPlayer player, String server) {
+        if (!ServersLink.isGateway) {
+            player.sendSystemMessage(Component.literal("You can only do this from the Gateway server").withStyle(ChatFormatting.RED));
+            return Command.SINGLE_SUCCESS;
+        }
+        ServersLinkApi.send(new ServerStopPacket(ServersLinkApi.getServerName(), server));
+        player.sendSystemMessage(Component.literal("The " + server + " server should restart now").withStyle(ChatFormatting.GREEN));
+        return Command.SINGLE_SUCCESS;
     }
 
     private static int list(CommandSourceStack source) {

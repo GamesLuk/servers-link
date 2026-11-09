@@ -7,6 +7,7 @@ import io.github.kgriff0n.packet.PacketHeader;
 import io.github.kgriff0n.packet.info.ServersInfoPacket;
 import io.github.kgriff0n.packet.play.PlayerDisconnectPacket;
 import io.github.kgriff0n.packet.play.PlayerTransferRequestPacket;
+import io.github.kgriff0n.packet.server.PlayerDataPacket;
 import io.github.kgriff0n.socket.Gateway;
 import io.github.kgriff0n.socket.G2SConnection;
 import io.github.kgriff0n.socket.SubServer;
@@ -21,6 +22,7 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -337,6 +339,24 @@ public class ServersLinkApi {
     public static void transferPlayer(ServerPlayer player, String from, String to, boolean toSpawn) {
         PlayerTransferRequestPacket transferPacket = new PlayerTransferRequestPacket(player.getUUID(), from, to, toSpawn);
         ServersLinkApi.send(transferPacket);
+    }
+
+    public static void sendPlayerData(UUID uuid) {
+        if (FakePlayerApi.isFake(ServersLink.SERVER, ServersLink.SERVER.getPlayerList().getPlayer(uuid))) return;
+        try {
+            /* Make sure the files on disk contain the latest state */
+            ServersLink.SERVER.getPlayerList().saveAll();
+
+            PlayerDataPacket dataPacket = new PlayerDataPacket(uuid);
+            if (ServersLink.isGateway) {
+                Gateway.getInstance().sendToAllFrom(ServersLink.getServerInfo().getName(), dataPacket);
+            } else {
+                SubServer.getInstance().send(dataPacket);
+            }
+            ServersLink.LOGGER.info("[DEBUG] TransferResponse - PlayerDataPacket sent for {}", uuid);
+        } catch (IOException e) {
+            ServersLink.LOGGER.error("[DEBUG] TransferResponse - could not create PlayerDataPacket for {}", uuid, e);
+        }
     }
 
     public static String getServerName() {

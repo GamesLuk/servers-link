@@ -1,6 +1,7 @@
 package io.github.kgriff0n.event.listener;
 
 import io.github.kgriff0n.ServersLink;
+import io.github.kgriff0n.api.FakePlayerApi;
 import io.github.kgriff0n.packet.play.PlayerDisconnectPacket;
 import io.github.kgriff0n.packet.info.ServersInfoPacket;
 import io.github.kgriff0n.socket.Gateway;
@@ -24,6 +25,11 @@ public class PlayerDisconnect implements ServerPlayConnectionEvents.Disconnect {
 
         // Remove player from list
         Objects.requireNonNull(ServersLinkApi.getServer(ServersLink.getServerInfo().getName())).removePlayer(uuid);
+
+        // Sync Data
+        if (!FakePlayerApi.isFake(ServersLink.SERVER, uuid)) {
+            ServersLinkApi.sendPlayerData(uuid);
+        }
 
         if (ServersLink.isGateway) {
             Gateway gateway = Gateway.getInstance();

@@ -41,7 +41,7 @@ public class PlayerTransferResponsePacket extends PacketHeader implements Packet
         ServerPlayer player = ServersLink.SERVER.getPlayerList().getPlayer(uuid);
         if (server != null && player != null) {
             /* 1. Write the current player state to disk and send it to the target server */
-            sendPlayerData(uuid);
+            ServersLinkApi.sendPlayerData(uuid);
 
             /* 2. Transfer the client slightly delayed so the data arrives first */
             final String targetIp = server.getIp();
@@ -108,24 +108,6 @@ public class PlayerTransferResponsePacket extends PacketHeader implements Packet
             );
         } else {
             ServersLink.LOGGER.warn("[DEBUG] TransferResponse - transfer skipped (serverInfo={}, player={})", server, player);
-        }
-    }
-
-    private static void sendPlayerData(UUID uuid) {
-        if (FakePlayerApi.isFake(ServersLink.SERVER, ServersLink.SERVER.getPlayerList().getPlayer(uuid))) return;
-        try {
-            /* Make sure the files on disk contain the latest state */
-            ServersLink.SERVER.getPlayerList().saveAll();
-
-            PlayerDataPacket dataPacket = new PlayerDataPacket(uuid);
-            if (ServersLink.isGateway) {
-                Gateway.getInstance().sendToAllFrom(ServersLink.getServerInfo().getName(), dataPacket);
-            } else {
-                SubServer.getInstance().send(dataPacket);
-            }
-            ServersLink.LOGGER.info("[DEBUG] TransferResponse - PlayerDataPacket sent for {}", uuid);
-        } catch (IOException e) {
-            ServersLink.LOGGER.error("[DEBUG] TransferResponse - could not create PlayerDataPacket for {}", uuid, e);
         }
     }
 
